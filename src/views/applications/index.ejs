@@ -1,0 +1,74 @@
+<%- include('../partials/header') %>
+
+<div class="card-header">
+  <h1>Aplicações</h1>
+  <a href="/applications/new" class="btn btn-primary">Nova Aplicação</a>
+</div>
+
+<% if (typeof query !== 'undefined' && query.success) { %>
+<div class="alert alert-success"><%= query.success %></div>
+<% } %>
+
+<div class="card">
+  <% if (applications.length === 0) { %>
+  <div class="empty-state">
+    <p>Nenhuma aplicação cadastrada ainda.</p>
+    <a href="/applications/new" class="btn btn-primary mt-2">Criar Primeira Aplicação</a>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data/Hora Início</th>
+          <th>Cliente</th>
+          <th>Propriedade</th>
+          <th>Cultura</th>
+          <th>Área (ha)</th>
+          <th>Produto</th>
+          <th>Operador</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% applications.forEach(app => { %>
+        <tr>
+          <td><%= new Date(app.dataHoraInicio).toLocaleString('pt-BR') %></td>
+          <td><%= app.clientId.nomeRazaoSocial %></td>
+          <td><%= app.clientId.propriedadeFazenda || '-' %></td>
+          <td><%= app.culturaTratada %></td>
+          <td><%= app.areaTratada %></td>
+          <td><%= app.marcaComercial %></td>
+          <td><%= app.operatorId.nome %></td>
+          <td>
+            <div class="table-actions">
+              <a href="/applications/<%= app._id %>" class="btn btn-sm btn-outline">Ver</a>
+              <a href="/applications/<%= app._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
+              <a href="/reports/application/<%= app._id %>/pdf" class="btn btn-sm btn-accent" target="_blank">PDF</a>
+              <form method="POST" action="/applications/<%= app._id %>/duplicate" style="display: inline;">
+                <button type="submit" class="btn btn-sm btn-secondary">Duplicar</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  
+  <% if (totalPages > 1) { %>
+  <div class="d-flex gap-2 mt-3">
+    <% if (currentPage > 1) { %>
+    <a href="?page=<%= currentPage - 1 %>" class="btn btn-outline">Anterior</a>
+    <% } %>
+    <span style="margin: auto;">Página <%= currentPage %> de <%= totalPages %></span>
+    <% if (currentPage < totalPages) { %>
+    <a href="?page=<%= currentPage + 1 %>" class="btn btn-outline">Próxima</a>
+    <% } %>
+  </div>
+  <% } %>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+

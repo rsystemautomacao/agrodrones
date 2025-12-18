@@ -1,0 +1,144 @@
+<%- include('../partials/header') %>
+
+<h1>Relatórios e Exportações</h1>
+
+<div class="card">
+  <div class="filters">
+    <h2>Filtros</h2>
+    <form method="GET" action="/reports">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data Início</label>
+          <input type="date" name="dataInicio" class="form-input" value="<%= filters.dataInicio %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data Fim</label>
+          <input type="date" name="dataFim" class="form-input" value="<%= filters.dataFim %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cliente</label>
+          <select name="clientId" class="form-select">
+            <option value="">Todos</option>
+            <% clients.forEach(client => { %>
+            <option value="<%= client._id %>" <%= filters.clientId === client._id.toString() ? 'selected' : '' %>><%= client.nomeRazaoSocial %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Município</label>
+          <input type="text" name="municipio" class="form-input" value="<%= filters.municipio %>">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">UF</label>
+          <select name="uf" id="uf-filtro" class="form-select">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Atividade</label>
+          <select name="tipoAtividade" class="form-select">
+            <option value="">Todos</option>
+            <option value="agrotoxico" <%= filters.tipoAtividade === 'agrotoxico' ? 'selected' : '' %>>Agrotóxico</option>
+            <option value="fertilizante" <%= filters.tipoAtividade === 'fertilizante' ? 'selected' : '' %>>Fertilizante</option>
+            <option value="inoculante" <%= filters.tipoAtividade === 'inoculante' ? 'selected' : '' %>>Inoculante</option>
+            <option value="corretivo" <%= filters.tipoAtividade === 'corretivo' ? 'selected' : '' %>>Corretivo</option>
+            <option value="semeadura" <%= filters.tipoAtividade === 'semeadura' ? 'selected' : '' %>>Semeadura</option>
+            <option value="outros" <%= filters.tipoAtividade === 'outros' ? 'selected' : '' %>>Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Drone</label>
+          <select name="droneId" class="form-select">
+            <option value="">Todos</option>
+            <% drones.forEach(drone => { %>
+            <option value="<%= drone._id %>" <%= filters.droneId === drone._id.toString() ? 'selected' : '' %>><%= drone.marcaModelo %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Operador</label>
+          <select name="operatorId" class="form-select">
+            <option value="">Todos</option>
+            <% operators.forEach(operator => { %>
+            <option value="<%= operator._id %>" <%= filters.operatorId === operator._id.toString() ? 'selected' : '' %>><%= operator.nome %></option>
+            <% }); %>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Cultura</label>
+        <input type="text" name="cultura" class="form-input" value="<%= filters.cultura %>">
+      </div>
+      
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <a href="/reports" class="btn btn-outline">Limpar Filtros</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Aplicações Encontradas: <%= applications.length %></h2>
+    <div class="d-flex gap-2">
+      <a href="/reports/export/csv<%= Object.keys(filters).filter(k => filters[k]).length > 0 ? '?' + new URLSearchParams(filters).toString() : '' %>" class="btn btn-secondary">Exportar CSV</a>
+      <a href="/reports/export/pdf<%= Object.keys(filters).filter(k => filters[k]).length > 0 ? '?' + new URLSearchParams(filters).toString() : '' %>" class="btn btn-accent">Gerar PDF Consolidado</a>
+    </div>
+  </div>
+  
+  <% if (applications.length === 0) { %>
+  <div class="empty-state">
+    <p>Nenhuma aplicação encontrada com os filtros selecionados.</p>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Cliente</th>
+          <th>Propriedade</th>
+          <th>Cultura</th>
+          <th>Área (ha)</th>
+          <th>Produto</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% applications.forEach(app => { %>
+        <tr>
+          <td><%= new Date(app.dataHoraInicio).toLocaleString('pt-BR') %></td>
+          <td><%= app.clientId.nomeRazaoSocial %></td>
+          <td><%= app.clientId.propriedadeFazenda || '-' %></td>
+          <td><%= app.culturaTratada %></td>
+          <td><%= app.areaTratada %></td>
+          <td><%= app.marcaComercial %></td>
+          <td>
+            <div class="table-actions">
+              <a href="/applications/<%= app._id %>" class="btn btn-sm btn-outline">Ver</a>
+              <a href="/reports/application/<%= app._id %>/pdf" class="btn btn-sm btn-accent" target="_blank">PDF</a>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof popularSelectUF === 'function') {
+    popularSelectUF('uf-filtro', '<%= filters.uf %>');
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>
+

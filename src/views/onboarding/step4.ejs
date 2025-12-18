@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+
+<div class="onboarding-container">
+  <div class="onboarding-progress">
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Dados da Empresa</div>
+    </div>
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Endereço</div>
+    </div>
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Registro</div>
+    </div>
+    <div class="progress-step active">
+      <div class="progress-number">4</div>
+      <div>Serviços</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">5</div>
+      <div>Equipe</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Passo 4: Serviços Prestados</h2>
+    
+    <form method="POST" action="/onboarding/step4">
+      <div class="form-group">
+        <label class="form-label">Selecione os serviços prestados:</label>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="servicosPrestados" value="agrotoxicos" <%= company && company.servicosPrestados && company.servicosPrestados.includes('agrotoxicos') ? 'checked' : '' %>>
+            <span>Aplicação de Agrotóxicos</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="servicosPrestados" value="fertilizantes" <%= company && company.servicosPrestados && company.servicosPrestados.includes('fertilizantes') ? 'checked' : '' %>>
+            <span>Fertilizantes</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="servicosPrestados" value="inoculantes" <%= company && company.servicosPrestados && company.servicosPrestados.includes('inoculantes') ? 'checked' : '' %>>
+            <span>Inoculantes</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="servicosPrestados" value="corretivos" <%= company && company.servicosPrestados && company.servicosPrestados.includes('corretivos') ? 'checked' : '' %>>
+            <span>Corretivos</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="servicosPrestados" value="semeadura" <%= company && company.servicosPrestados && company.servicosPrestados.includes('semeadura') ? 'checked' : '' %>>
+            <span>Semeadura</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="servicosPrestados" value="outros" <%= company && company.servicosPrestados && company.servicosPrestados.includes('outros') ? 'checked' : '' %>>
+            <span>Outros</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Outros (especifique)</label>
+        <input type="text" name="servicosOutros" class="form-input" value="<%= company ? company.servicosOutros : '' %>">
+      </div>
+      
+      <div class="d-flex gap-2">
+        <a href="/onboarding/step3" class="btn btn-outline">Voltar</a>
+        <button type="submit" class="btn btn-primary ml-auto">Próximo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+

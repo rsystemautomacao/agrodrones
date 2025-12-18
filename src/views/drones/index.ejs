@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <div class="card-header">
+    <h1>Drones</h1>
+    <a href="/drones/new" class="btn btn-primary">Novo Drone</a>
+  </div>
+  
+  <% if (typeof query !== 'undefined' && query.success) { %>
+<div class="alert alert-success"><%= query.success %></div>
+<% } %>
+
+<div class="card">
+  <% if (drones.length === 0) { %>
+  <div class="empty-state">
+    <p>Nenhum drone cadastrado ainda.</p>
+    <a href="/drones/new" class="btn btn-primary mt-2">Cadastrar Primeiro Drone</a>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Marca/Modelo</th>
+          <th>Identificação/Registro (ANAC)</th>
+          <th>Capacidade do Tanque (L)</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% drones.forEach(drone => { %>
+        <tr>
+          <td><%= drone.marcaModelo %></td>
+          <td><%= drone.identificacaoRegistro %></td>
+          <td><%= drone.capacidadeTanque || '-' %></td>
+          <td>
+            <div class="table-actions">
+              <a href="/drones/<%= drone._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
+              <% if (drone.active) { %>
+              <form method="POST" action="/drones/<%= drone._id %>/delete" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja desativar este drone?');">
+                <button type="submit" class="btn btn-sm btn-danger">Desativar</button>
+              </form>
+              <% } %>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+

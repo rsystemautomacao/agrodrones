@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <h1><%= operator && operator._id ? 'Editar Operador' : 'Novo Operador' %></h1>
+  
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <form method="POST" action="<%= operator && operator._id ? '/operators/' + operator._id : '/operators' %>">
+    <div class="form-group">
+      <label class="form-label required">Nome</label>
+      <input type="text" name="nome" class="form-input" value="<%= operator ? operator.nome : '' %>" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label required">Função</label>
+      <select name="funcao" class="form-select" required>
+        <option value="">Selecione</option>
+        <option value="piloto_remoto" <%= operator && operator.funcao === 'piloto_remoto' ? 'selected' : '' %>>Piloto Remoto</option>
+        <option value="aplicador" <%= operator && operator.funcao === 'aplicador' ? 'selected' : '' %>>Aplicador</option>
+        <option value="aux_aplicacao" <%= operator && operator.funcao === 'aux_aplicacao' ? 'selected' : '' %>>Aux de Aplicação</option>
+        <option value="rt" <%= operator && operator.funcao === 'rt' ? 'selected' : '' %>>Responsável Técnico</option>
+        <option value="admin" <%= operator && operator.funcao === 'admin' ? 'selected' : '' %>>Admin</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Documento/Registro</label>
+      <input type="text" name="documentoRegistro" class="form-input" value="<%= operator ? operator.documentoRegistro : '' %>">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Telefone</label>
+      <input type="text" name="telefone" class="form-input" value="<%= operator ? operator.telefone : '' %>">
+    </div>
+    
+    <div class="d-flex gap-2">
+      <a href="/operators" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-primary ml-auto">Salvar</button>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+

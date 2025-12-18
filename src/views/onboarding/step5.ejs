@@ -1,0 +1,95 @@
+<%- include('../partials/header') %>
+
+<div class="onboarding-container">
+  <div class="onboarding-progress">
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Dados da Empresa</div>
+    </div>
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Endereço</div>
+    </div>
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Registro</div>
+    </div>
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Serviços</div>
+    </div>
+    <div class="progress-step active">
+      <div class="progress-number">5</div>
+      <div>Equipe</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Passo 5: Equipe e Identidade Visual</h2>
+    
+    <form method="POST" action="/onboarding/step5" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Logo da Empresa</label>
+        <input type="file" name="logo" class="form-input" accept="image/*">
+        <% if (company && company.logo) { %>
+        <p style="margin-top: 0.5rem; color: var(--gray);">Logo atual: <a href="<%= company.logo %>" target="_blank">Visualizar</a></p>
+        <% } %>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Colaboradores</label>
+        <div id="operators-list">
+          <% if (operators && operators.length > 0) { %>
+            <% operators.forEach(op => { %>
+            <div class="form-row" style="margin-bottom: 1rem;">
+              <div class="form-group">
+                <input type="text" class="form-input" value="<%= op.nome %>" disabled>
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-input" value="<%= op.funcao %>" disabled>
+              </div>
+            </div>
+            <% }); %>
+          <% } %>
+          
+          <div class="form-row" id="operator-template" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <input type="text" name="nomeColaborador" class="form-input" placeholder="Nome">
+            </div>
+            <div class="form-group">
+              <select name="funcaoColaborador" class="form-select">
+                <option value="">Selecione a função</option>
+                <option value="admin">Admin</option>
+                <option value="rt">Responsável Técnico</option>
+                <option value="piloto_remoto">Piloto Remoto</option>
+                <option value="aplicador">Aplicador</option>
+                <option value="aux_aplicacao">Aux de Aplicação</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addOperator()">+ Adicionar Colaborador</button>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <a href="/onboarding/step4" class="btn btn-outline">Voltar</a>
+        <button type="submit" class="btn btn-primary ml-auto">Finalizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let operatorCount = 1;
+function addOperator() {
+  const template = document.getElementById('operator-template');
+  const clone = template.cloneNode(true);
+  clone.id = 'operator-' + operatorCount++;
+  clone.querySelector('input[name="nomeColaborador"]').name = 'nomeColaborador';
+  clone.querySelector('select[name="funcaoColaborador"]').name = 'funcaoColaborador';
+  template.parentElement.insertBefore(clone, template);
+}
+</script>
+
+<%- include('../partials/footer') %>
+

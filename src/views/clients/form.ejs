@@ -1,0 +1,76 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <h1><%= client && client._id ? 'Editar Cliente' : 'Novo Cliente' %></h1>
+  
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <form method="POST" action="<%= client && client._id ? '/clients/' + client._id : '/clients' %>">
+    <div class="form-group">
+      <label class="form-label required">Nome/Razão Social</label>
+      <input type="text" name="nomeRazaoSocial" class="form-input" value="<%= client ? client.nomeRazaoSocial : '' %>" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">CPF/CNPJ</label>
+      <input type="text" name="cpfCnpj" class="form-input" value="<%= client ? client.cpfCnpj : '' %>">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Propriedade/Fazenda</label>
+      <input type="text" name="propriedadeFazenda" class="form-input" value="<%= client ? client.propriedadeFazenda : '' %>">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Endereço/Localização</label>
+      <input type="text" name="enderecoLocalizacao" class="form-input" value="<%= client ? client.enderecoLocalizacao : '' %>">
+    </div>
+    
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Município</label>
+          <input type="text" name="municipio" id="municipio-cliente" class="form-input" value="<%= client ? client.municipio : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">UF</label>
+          <select name="uf" id="uf-cliente" class="form-select" required>
+            <option value="">Selecione o estado</option>
+          </select>
+        </div>
+      </div>
+    
+    <div class="form-group">
+      <label class="form-label">Observações</label>
+      <textarea name="observacoes" class="form-textarea"><%= client ? client.observacoes : '' %></textarea>
+    </div>
+    
+    <div class="d-flex gap-2">
+      <a href="/clients" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-primary ml-auto">Salvar</button>
+    </div>
+  </form>
+</div>
+
+<script src="/js/estados-cidades.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  popularSelectUF('uf-cliente', '<%= client ? client.uf : '' %>');
+  
+  const ufSelect = document.getElementById('uf-cliente');
+  const municipioInput = document.getElementById('municipio-cliente');
+  
+  ufSelect.addEventListener('change', function() {
+    buscarCidades(this.value, 'municipio-cliente');
+  });
+  
+  // Se já tem UF, carregar cidades
+  if (ufSelect.value) {
+    buscarCidades(ufSelect.value, 'municipio-cliente');
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>
+

@@ -1,0 +1,180 @@
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const Company = require('../models/Company');
+const { requireAuth } = require('../middleware/auth');
+
+// Login
+router.get('/login', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/dashboard');
+  }
+  res.render('auth/login', { title: 'Login', error: null });
+});
+
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.render('auth/login', { 
+        title: 'Login', 
+        error: 'Email e senha são obrigatórios.' 
+      });
+    }
+    
+    const user = await User.findOne({ email: email.toLowerCase() }).populate('companyId');
+    
+    if (!user) {
+      return res.render('auth/login', { 
+        title: 'Login', 
+        error: 'Credenciais inválidas.' 
+      });
+    }
+    
+    const isMatch = await user.comparePassword(password);
+    
+    if (!isMatch) {
+      return res.render('auth/login', { 
+        title: 'Login', 
+        error: 'Credenciais inválidas.' 
+      });
+    }
+    
+    req.session.user = {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      companyId: user.companyId._id.toString()
+    };
+    
+    req.session.company = {
+      id: user.companyId._id.toString(),
+      name: user.companyId.razaoSocial,
+      onboardingCompleted: user.companyId.onboardingCompleted
+    };
+    
+    if (!user.companyId.onboardingCompleted) {
+      return res.redirect('/onboarding');
+    }
+    
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('Erro no login:', error);
+    res.render('auth/login', { 
+      title: 'Login', 
+      error: 'Erro ao fazer login. Tente novamente.' 
+    });
+  }
+});
+
+// Registro
+router.get('/register', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/dashboard');
+  }
+  res.render('auth/register', { title: 'Registrar', error: null });
+});
+
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, password, passwordConfirm, companyName, cnpj } = req.body;
+    
+    if (!name || !email || !password || !passwordConfirm || !companyName || !cnpj) {
+      return res.render('auth/register', { 
+        title: 'Registrar', 
+        error: 'Todos os campos são obrigatórios.' 
+      });
+    }
+    
+    if (password !== passwordConfirm) {
+      return res.render('auth/register', { 
+        title: 'Registrar', 
+        error: 'As senhas não coincidem.' 
+      });
+    }
+    
+    if (password.length < 6) {
+      return res.render('auth/register', { 
+        title: 'Registrar', 
+        error: 'A senha deve ter pelo menos 6 caracteres.' 
+      });
+    }
+    
+    // Verificar se email já existe
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.render('auth/register', { 
+        title: 'Registrar', 
+        error: 'Este email já está cadastrado.' 
+      });
+    }
+    
+    // Criar empresa (endereço será preenchido no onboarding)
+    const company = new Company({
+      razaoSocial: companyName,
+      cnpj: cnpj.replace(/\D/g, ''),
+      email: email.toLowerCase(),
+      onboardingCompleted: false
+    });
+    
+    await company.save();
+    
+    // Criar usuário admin
+    const user = new User({
+      name,
+      email: email.toLowerCase(),
+      password,
+      role: 'admin',
+      companyId: company._id
+    });
+    
+    await user.save();
+    
+    // Definir sessão
+    req.session.user = {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      companyId: company._id.toString()
+    };
+    
+    req.session.company = {
+      id: company._id.toString(),
+      name: company.razaoSocial,
+      onboardingCompleted: false
+    };
+    
+    res.redirect('/onboarding');
+  } catch (error) {
+    console.error('Erro no registro:', error);
+    res.render('auth/register', { 
+      title: 'Registrar', 
+      error: error.message || 'Erro ao registrar. Tente novamente.' 
+    });
+  }
+});
+
+// Logout
+router.post('/logout', requireAuth, (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Erro ao fazer logout:', err);
+    }
+    res.redirect('/auth/login');
+  });
+});
+
+router.get('/logout', requireAuth, (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Erro ao fazer logout:', err);
+    }
+    res.redirect('/auth/login');
+  });
+});
+
+module.exports = router;
+

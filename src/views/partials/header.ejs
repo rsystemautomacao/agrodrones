@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>AgroDrones</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/estados-cidades.js" defer></script>
+</head>
+<body>
+  <% if (typeof user !== 'undefined' && user) { %>
+  <header class="header">
+    <div class="header-container">
+      <a href="/dashboard" class="logo">
+        <img src="/images/logo.png" alt="AgroDrones" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+        <span style="vertical-align: middle;">Agro<span style="color: var(--secondary);">Drones</span></span>
+      </a>
+      <nav class="nav">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/applications">Aplicações</a>
+        <a href="/clients">Clientes</a>
+        <a href="/drones">Drones</a>
+        <a href="/operators">Operadores</a>
+        <a href="/reports">Relatórios</a>
+        <% if (user.role === 'admin') { %>
+        <a href="/settings">Configurações</a>
+        <% } %>
+      </nav>
+      <div class="user-menu">
+        <span class="user-name"><%= user.name %></span>
+        <a href="/auth/logout" class="btn-logout">Sair</a>
+      </div>
+    </div>
+  </header>
+  <% } %>
+

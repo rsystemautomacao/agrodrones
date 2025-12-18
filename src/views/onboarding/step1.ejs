@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+
+<div class="onboarding-container">
+  <div class="onboarding-progress">
+    <div class="progress-step active">
+      <div class="progress-number">1</div>
+      <div>Dados da Empresa</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">2</div>
+      <div>Endereço</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">3</div>
+      <div>Registro</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">4</div>
+      <div>Serviços</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">5</div>
+      <div>Equipe</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Passo 1: Dados da Empresa</h2>
+    
+    <form method="POST" action="/onboarding/step1">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Razão Social</label>
+          <input type="text" name="razaoSocial" class="form-input" value="<%= company ? company.razaoSocial : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome Fantasia</label>
+          <input type="text" name="nomeFantasia" class="form-input" value="<%= company ? company.nomeFantasia : '' %>">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">CNPJ</label>
+          <input type="text" name="cnpj" class="form-input" value="<%= company ? company.cnpj : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Inscrição Estadual</label>
+          <input type="text" name="inscricaoEstadual" class="form-input" value="<%= company ? company.inscricaoEstadual : '' %>">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Telefone</label>
+          <input type="text" name="telefone" class="form-input" value="<%= company ? company.telefone : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">Email</label>
+          <input type="email" name="email" class="form-input" value="<%= company ? company.email : '' %>" required>
+        </div>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary ml-auto">Próximo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+

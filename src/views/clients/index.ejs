@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <div class="card-header">
+    <h1>Clientes</h1>
+    <a href="/clients/new" class="btn btn-primary">Novo Cliente</a>
+  </div>
+  
+  <% if (typeof query !== 'undefined' && query.success) { %>
+<div class="alert alert-success"><%= query.success %></div>
+<% } %>
+<% if (typeof query !== 'undefined' && query.error) { %>
+<div class="alert alert-error"><%= query.error %></div>
+<% } %>
+
+<div class="card">
+  <% if (clients.length === 0) { %>
+  <div class="empty-state">
+    <p>Nenhum cliente cadastrado ainda.</p>
+    <a href="/clients/new" class="btn btn-primary mt-2">Cadastrar Primeiro Cliente</a>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome/Razão Social</th>
+          <th>CPF/CNPJ</th>
+          <th>Propriedade</th>
+          <th>Município/UF</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% clients.forEach(client => { %>
+        <tr>
+          <td><%= client.nomeRazaoSocial %></td>
+          <td><%= client.cpfCnpj || '-' %></td>
+          <td><%= client.propriedadeFazenda || '-' %></td>
+          <td><%= client.municipio %>/<%= client.uf %></td>
+          <td>
+            <div class="table-actions">
+              <a href="/clients/<%= client._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
+              <form method="POST" action="/clients/<%= client._id %>/delete" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja deletar este cliente?');">
+                <button type="submit" class="btn btn-sm btn-danger">Deletar</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+

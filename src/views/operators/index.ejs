@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <div class="card-header">
+    <h1>Operadores</h1>
+    <a href="/operators/new" class="btn btn-primary">Novo Operador</a>
+  </div>
+  
+  <% if (typeof query !== 'undefined' && query.success) { %>
+<div class="alert alert-success"><%= query.success %></div>
+<% } %>
+
+<div class="card">
+  <% if (operators.length === 0) { %>
+  <div class="empty-state">
+    <p>Nenhum operador cadastrado ainda.</p>
+    <a href="/operators/new" class="btn btn-primary mt-2">Cadastrar Primeiro Operador</a>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Função</th>
+          <th>Documento/Registro</th>
+          <th>Telefone</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% operators.forEach(operator => { %>
+        <tr>
+          <td><%= operator.nome %></td>
+          <td><span class="badge badge-primary"><%= operator.funcao === 'piloto_remoto' ? 'Piloto Remoto' : operator.funcao === 'aplicador' ? 'Aplicador' : operator.funcao === 'aux_aplicacao' ? 'Aux de Aplicação' : operator.funcao === 'rt' ? 'Responsável Técnico' : operator.funcao === 'admin' ? 'Admin' : operator.funcao %></span></td>
+          <td><%= operator.documentoRegistro || '-' %></td>
+          <td><%= operator.telefone || '-' %></td>
+          <td>
+            <div class="table-actions">
+              <a href="/operators/<%= operator._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
+              <% if (operator.active) { %>
+              <form method="POST" action="/operators/<%= operator._id %>/delete" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja desativar este operador?');">
+                <button type="submit" class="btn btn-sm btn-danger">Desativar</button>
+              </form>
+              <% } %>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+

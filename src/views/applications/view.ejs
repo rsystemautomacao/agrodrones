@@ -1,0 +1,119 @@
+<%- include('../partials/header') %>
+
+<div class="card-header">
+  <h1>Aplicação #<%= application._id.toString().slice(-6) %></h1>
+  <div class="d-flex gap-2">
+    <a href="/applications/<%= application._id %>/edit" class="btn btn-secondary">Editar</a>
+    <a href="/reports/application/<%= application._id %>/pdf" class="btn btn-accent" target="_blank">Gerar PDF MAPA</a>
+    <form method="POST" action="/applications/<%= application._id %>/duplicate" style="display: inline;">
+      <button type="submit" class="btn btn-secondary">Duplicar</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="collapsible active">
+    <div class="collapsible-header">
+      <span>Dados Básicos</span>
+      <span>▼</span>
+    </div>
+    <div class="collapsible-content">
+      <div class="form-row">
+        <div><strong>Cliente:</strong> <%= application.clientId.nomeRazaoSocial %></div>
+        <div><strong>Propriedade:</strong> <%= application.clientId.propriedadeFazenda || '-' %></div>
+      </div>
+      <div class="form-row">
+        <div><strong>Drone:</strong> <%= application.droneId.marcaModelo %> - <%= application.droneId.identificacaoRegistro %></div>
+        <div><strong>Operador:</strong> <%= application.operatorId.nome %></div>
+      </div>
+      <div class="form-row">
+        <div><strong>Data/Hora Início:</strong> <%= new Date(application.dataHoraInicio).toLocaleString('pt-BR') %></div>
+        <div><strong>Data/Hora Término:</strong> <%= new Date(application.dataHoraTermino).toLocaleString('pt-BR') %></div>
+      </div>
+      <div class="form-row">
+        <div><strong>Cultura:</strong> <%= application.culturaTratada %></div>
+        <div><strong>Área Tratada:</strong> <%= application.areaTratada %> hectares</div>
+        <div><strong>Tipo:</strong> <%= application.tipoAtividade %></div>
+      </div>
+      <div class="form-row">
+        <div><strong>Produto:</strong> <%= application.marcaComercial %></div>
+        <div><strong>Volume:</strong> <%= application.volume %></div>
+        <div><strong>Dosagem:</strong> <%= application.dosagemAplicada %></div>
+        <div><strong>Altura Voo:</strong> <%= application.alturaVoo %> m</div>
+      </div>
+      <div><strong>Coordenadas:</strong> <%= application.coordenadasGeograficas %></div>
+    </div>
+  </div>
+  
+  <div class="collapsible">
+    <div class="collapsible-header">
+      <span>Dados Meteorológicos</span>
+      <span>▼</span>
+    </div>
+    <div class="collapsible-content">
+      <div class="form-row">
+        <div><strong>Temperatura:</strong> <%= application.meteorologia.temperatura %>°C</div>
+        <div><strong>Umidade Relativa:</strong> <%= application.meteorologia.umidadeRelativa %>%</div>
+        <div><strong>Direção Vento:</strong> <%= application.meteorologia.direcaoVento %></div>
+        <div><strong>Velocidade Vento:</strong> <%= application.meteorologia.velocidadeVento %> km/h</div>
+      </div>
+    </div>
+  </div>
+  
+  <% if (application.relatorioOperacional && application.relatorioOperacional.produto) { %>
+  <div class="collapsible">
+    <div class="collapsible-header">
+      <span>Relatório Operacional (Anexo XI)</span>
+      <span>▼</span>
+    </div>
+    <div class="collapsible-content">
+      <h3>Contratante</h3>
+      <p><strong>Nome:</strong> <%= application.relatorioOperacional.contratante || '-' %></p>
+      <p><strong>Propriedade:</strong> <%= application.relatorioOperacional.propriedade || '-' %></p>
+      <p><strong>Localização:</strong> <%= application.relatorioOperacional.localizacao || '-' %></p>
+      <p><strong>Município/UF:</strong> <%= application.relatorioOperacional.municipio || '-' %>/<%= application.relatorioOperacional.uf || '-' %></p>
+      
+      <h3>Produto</h3>
+      <p><strong>Produto:</strong> <%= application.relatorioOperacional.produto || '-' %></p>
+      <p><strong>Formulação:</strong> <%= application.relatorioOperacional.formulacao || '-' %></p>
+      <p><strong>Classe Toxicológica:</strong> <%= application.relatorioOperacional.classeToxicologica || '-' %></p>
+      
+      <% if (application.relatorioOperacional.parametrosBasicos) { %>
+      <h3>Parâmetros Básicos</h3>
+      <p><strong>Equipamento:</strong> <%= application.relatorioOperacional.parametrosBasicos.equipamento || '-' %></p>
+      <p><strong>Modelo:</strong> <%= application.relatorioOperacional.parametrosBasicos.modelo || '-' %></p>
+      <p><strong>Tipo:</strong> <%= application.relatorioOperacional.parametrosBasicos.tipo || '-' %></p>
+      <% } %>
+      
+      <% if (application.relatorioOperacional.observacoes) { %>
+      <h3>Observações</h3>
+      <p><%= application.relatorioOperacional.observacoes %></p>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+  
+  <% if (application.evidencias && application.evidencias.length > 0) { %>
+  <div class="collapsible">
+    <div class="collapsible-header">
+      <span>Evidências (<%= application.evidencias.length %>)</span>
+      <span>▼</span>
+    </div>
+    <div class="collapsible-content">
+      <ul>
+        <% application.evidencias.forEach(ev => { %>
+        <li><a href="/files/<%= ev._id %>" target="_blank"><%= ev.originalName %></a> (<%= (ev.size / 1024).toFixed(2) %> KB)</li>
+        <% }); %>
+      </ul>
+    </div>
+  </div>
+  <% } %>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="/applications" class="btn btn-outline">Voltar para Lista</a>
+</div>
+
+<%- include('../partials/footer') %>
+

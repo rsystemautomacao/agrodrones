@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+
+<div class="onboarding-container">
+  <div class="onboarding-progress">
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Dados da Empresa</div>
+    </div>
+    <div class="progress-step active">
+      <div class="progress-number">2</div>
+      <div>Endereço</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">3</div>
+      <div>Registro</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">4</div>
+      <div>Serviços</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">5</div>
+      <div>Equipe</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Passo 2: Endereço</h2>
+    
+    <form method="POST" action="/onboarding/step2">
+      <div class="form-group">
+        <label class="form-label required">Logradouro</label>
+        <input type="text" name="logradouro" class="form-input" value="<%= company ? company.logradouro : '' %>" required>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Número</label>
+          <input type="text" name="numero" class="form-input" value="<%= company ? company.numero : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Complemento</label>
+          <input type="text" name="complemento" class="form-input" value="<%= company ? company.complemento : '' %>">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Bairro</label>
+          <input type="text" name="bairro" class="form-input" value="<%= company ? company.bairro : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">CEP</label>
+          <input type="text" name="cep" class="form-input" value="<%= company ? company.cep : '' %>" required>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Cidade</label>
+          <input type="text" name="cidade" id="cidade-onboarding" class="form-input" value="<%= company ? company.cidade : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">UF</label>
+          <select name="uf" id="uf-onboarding" class="form-select" required>
+            <option value="">Selecione o estado</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <a href="/onboarding" class="btn btn-outline">Voltar</a>
+        <button type="submit" class="btn btn-primary ml-auto">Próximo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/estados-cidades.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  popularSelectUF('uf-onboarding', '<%= company ? company.uf : '' %>');
+  
+  const ufSelect = document.getElementById('uf-onboarding');
+  const cidadeInput = document.getElementById('cidade-onboarding');
+  
+  ufSelect.addEventListener('change', function() {
+    buscarCidades(this.value, 'cidade-onboarding');
+  });
+  
+  // Se já tem UF, carregar cidades
+  if (ufSelect.value) {
+    buscarCidades(ufSelect.value, 'cidade-onboarding');
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>
+

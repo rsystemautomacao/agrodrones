@@ -1,0 +1,66 @@
+<%- include('../partials/header') %>
+
+<div class="onboarding-container">
+  <div class="onboarding-progress">
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Dados da Empresa</div>
+    </div>
+    <div class="progress-step completed">
+      <div class="progress-number">✓</div>
+      <div>Endereço</div>
+    </div>
+    <div class="progress-step active">
+      <div class="progress-number">3</div>
+      <div>Registro</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">4</div>
+      <div>Serviços</div>
+    </div>
+    <div class="progress-step">
+      <div class="progress-number">5</div>
+      <div>Equipe</div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Passo 3: Registro e Conformidade</h2>
+    
+    <form method="POST" action="/onboarding/step3">
+      <div class="form-group">
+        <label class="form-label">Número de Registro no MAPA</label>
+        <input type="text" name="numeroRegistroMAPA" class="form-input" value="<%= company ? company.numeroRegistroMAPA : '' %>">
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Responsável Técnico - Nome</label>
+          <input type="text" name="responsavelTecnicoNome" class="form-input" value="<%= company && company.responsavelTecnico ? company.responsavelTecnico.nome : '' %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CREA</label>
+          <input type="text" name="responsavelTecnicoCrea" class="form-input" value="<%= company && company.responsavelTecnico ? company.responsavelTecnico.crea : '' %>">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Curso/Credencial</label>
+        <textarea name="cursoCredencial" class="form-textarea"><%= company ? company.cursoCredencial : '' %></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <textarea name="observacoes" class="form-textarea"><%= company ? company.observacoes : '' %></textarea>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <a href="/onboarding/step2" class="btn btn-outline">Voltar</a>
+        <button type="submit" class="btn btn-primary ml-auto">Próximo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+

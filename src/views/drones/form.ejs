@@ -1,0 +1,39 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <h1><%= drone && drone._id ? 'Editar Drone' : 'Novo Drone' %></h1>
+  
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <form method="POST" action="<%= drone && drone._id ? '/drones/' + drone._id : '/drones' %>">
+    <div class="form-group">
+      <label class="form-label required">Marca/Modelo</label>
+      <input type="text" name="marcaModelo" class="form-input" value="<%= drone ? drone.marcaModelo : '' %>" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label required">Identificação/Registro (ANAC)</label>
+      <input type="text" name="identificacaoRegistro" class="form-input" value="<%= drone ? drone.identificacaoRegistro : '' %>" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Capacidade do Tanque (Litros)</label>
+      <input type="number" step="0.01" name="capacidadeTanque" class="form-input" value="<%= drone ? drone.capacidadeTanque : '' %>">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Observações</label>
+      <textarea name="observacoes" class="form-textarea"><%= drone ? drone.observacoes : '' %></textarea>
+    </div>
+    
+    <div class="d-flex gap-2">
+      <a href="/drones" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-primary ml-auto">Salvar</button>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+

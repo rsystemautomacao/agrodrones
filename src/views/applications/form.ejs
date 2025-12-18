@@ -1,0 +1,437 @@
+<%- include('../partials/header') %>
+
+<div class="card">
+  <h1><%= application && application._id ? 'Editar Aplicação' : 'Nova Aplicação' %></h1>
+  
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-error"><%= error %></div>
+  <% } %>
+  
+  <form method="POST" action="<%= application && application._id ? '/applications/' + application._id : '/applications' %>" enctype="multipart/form-data">
+    
+    <!-- Dados Básicos -->
+    <div class="collapsible active">
+      <div class="collapsible-header">
+        <span>Dados Básicos</span>
+        <span>▼</span>
+      </div>
+      <div class="collapsible-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Cliente</label>
+            <select name="clientId" class="form-select" required id="clientSelect" onchange="fillClientData()">
+              <option value="">Selecione</option>
+              <% clients.forEach(client => { %>
+              <option value="<%= client._id %>" 
+                data-propriedade="<%= client.propriedadeFazenda || '' %>"
+                data-endereco="<%= client.enderecoLocalizacao || '' %>"
+                data-municipio="<%= client.municipio %>"
+                data-uf="<%= client.uf %>"
+                data-cpfcnpj="<%= client.cpfCnpj || '' %>"
+                <%= application && application.clientId && application.clientId._id.toString() === client._id.toString() ? 'selected' : '' %>><%= client.nomeRazaoSocial %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Drone</label>
+            <select name="droneId" class="form-select" required id="droneSelect">
+              <option value="">Selecione</option>
+              <% drones.forEach(drone => { %>
+              <option value="<%= drone._id %>" 
+                data-modelo="<%= drone.marcaModelo %>"
+                data-registro="<%= drone.identificacaoRegistro %>"
+                <%= application && application.droneId && application.droneId._id.toString() === drone._id.toString() ? 'selected' : '' %>><%= drone.marcaModelo %> - <%= drone.identificacaoRegistro %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Operador</label>
+            <select name="operatorId" class="form-select" required>
+              <option value="">Selecione</option>
+              <% operators.forEach(operator => { %>
+              <option value="<%= operator._id %>" <%= application && application.operatorId && application.operatorId._id.toString() === operator._id.toString() ? 'selected' : '' %>><%= operator.nome %> - <%= operator.funcao %></option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Data e Hora de Início</label>
+            <input type="datetime-local" name="dataHoraInicio" class="form-input" 
+              value="<%= application ? new Date(application.dataHoraInicio).toISOString().slice(0, 16) : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Data e Hora de Término</label>
+            <input type="datetime-local" name="dataHoraTermino" class="form-input" 
+              value="<%= application ? new Date(application.dataHoraTermino).toISOString().slice(0, 16) : '' %>" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label required">Coordenadas Geográficas</label>
+          <input type="text" name="coordenadasGeograficas" class="form-input" 
+            value="<%= application ? application.coordenadasGeograficas : '' %>" required
+            placeholder="Ex: -23.5505, -46.6333 ou múltiplos pontos">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Cultura Tratada</label>
+            <input type="text" name="culturaTratada" class="form-input" 
+              value="<%= application ? application.culturaTratada : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Área Tratada (hectares)</label>
+            <input type="number" step="0.01" name="areaTratada" class="form-input" 
+              value="<%= application ? application.areaTratada : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Tipo de Atividade</label>
+            <select name="tipoAtividade" class="form-select" required>
+              <option value="">Selecione</option>
+              <option value="agrotoxico" <%= application && application.tipoAtividade === 'agrotoxico' ? 'selected' : '' %>>Agrotóxico</option>
+              <option value="fertilizante" <%= application && application.tipoAtividade === 'fertilizante' ? 'selected' : '' %>>Fertilizante</option>
+              <option value="inoculante" <%= application && application.tipoAtividade === 'inoculante' ? 'selected' : '' %>>Inoculante</option>
+              <option value="corretivo" <%= application && application.tipoAtividade === 'corretivo' ? 'selected' : '' %>>Corretivo</option>
+              <option value="semeadura" <%= application && application.tipoAtividade === 'semeadura' ? 'selected' : '' %>>Semeadura</option>
+              <option value="outros" <%= application && application.tipoAtividade === 'outros' ? 'selected' : '' %>>Outros</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Marca Comercial</label>
+            <input type="text" name="marcaComercial" class="form-input" 
+              value="<%= application ? application.marcaComercial : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Volume</label>
+            <input type="number" step="0.01" name="volume" class="form-input" 
+              value="<%= application ? application.volume : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Dosagem Aplicada</label>
+            <input type="text" name="dosagemAplicada" class="form-input" 
+              value="<%= application ? application.dosagemAplicada : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Altura de Voo (metros)</label>
+            <input type="number" step="0.01" name="alturaVoo" class="form-input" 
+              value="<%= application ? application.alturaVoo : (defaults.alturaVooPadrao || '') %>" required>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Meteorologia -->
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <span>Dados Meteorológicos</span>
+        <span>▼</span>
+      </div>
+      <div class="collapsible-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Temperatura (°C)</label>
+            <input type="number" step="0.1" name="temperatura" class="form-input" 
+              value="<%= application && application.meteorologia ? application.meteorologia.temperatura : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Umidade Relativa (%)</label>
+            <input type="number" step="0.1" name="umidadeRelativa" class="form-input" 
+              value="<%= application && application.meteorologia ? application.meteorologia.umidadeRelativa : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Direção do Vento</label>
+            <input type="text" name="direcaoVento" class="form-input" 
+              value="<%= application && application.meteorologia ? application.meteorologia.direcaoVento : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Velocidade do Vento (km/h)</label>
+            <input type="number" step="0.1" name="velocidadeVento" class="form-input" 
+              value="<%= application && application.meteorologia ? application.meteorologia.velocidadeVento : '' %>" required>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Relatório Operacional (Anexo XI) -->
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <span>Relatório Operacional (Anexo XI - MAPA)</span>
+        <span>▼</span>
+      </div>
+      <div class="collapsible-content">
+        <h3>Contratante/Propriedade</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Contratante</label>
+            <input type="text" name="contratante" class="form-input" id="contratante" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.contratante : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Propriedade</label>
+            <input type="text" name="propriedade" class="form-input" id="propriedade" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.propriedade : '' %>">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Localização</label>
+            <input type="text" name="localizacao" class="form-input" id="localizacao" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.localizacao : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Município</label>
+            <input type="text" name="municipio" class="form-input" id="municipio" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.municipio : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">UF</label>
+            <select name="uf" class="form-select" id="uf-relatorio">
+              <option value="">Selecione o estado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CPF/CNPJ</label>
+            <input type="text" name="cpfCnpj" class="form-input" id="cpfCnpj" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.cpfCnpj : '' %>">
+          </div>
+        </div>
+        
+        <h3>Produto</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Produto</label>
+            <input type="text" name="produto" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.produto : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Formulação</label>
+            <input type="text" name="formulacao" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.formulacao : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dosagem</label>
+            <input type="text" name="dosagem" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.dosagem : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Classe Toxicológica</label>
+            <input type="text" name="classeToxicologica" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.classeToxicologica : '' %>">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Adjuvante</label>
+            <input type="text" name="adjuvante" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.adjuvante : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Volume (L ou kg/ha)</label>
+            <input type="text" name="volumeRelatorio" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.volume : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Outros</label>
+            <input type="text" name="outros" class="form-input" 
+              value="<%= application && application.relatorioOperacional ? application.relatorioOperacional.outros : '' %>">
+          </div>
+        </div>
+        
+        <h3>Receituário Agronômico</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Número</label>
+            <input type="text" name="receituarioNumero" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.receituarioAgronomico ? application.relatorioOperacional.receituarioAgronomico.numero : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data de Emissão</label>
+            <input type="date" name="receituarioData" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.receituarioAgronomico && application.relatorioOperacional.receituarioAgronomico.dataEmissao ? new Date(application.relatorioOperacional.receituarioAgronomico.dataEmissao).toISOString().split('T')[0] : '' %>">
+          </div>
+        </div>
+        
+        <h3>Parâmetros Básicos</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Temp. Máx (°C)</label>
+            <input type="number" step="0.1" name="tempMax" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.temperaturaMax : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Temp. Mín (°C)</label>
+            <input type="number" step="0.1" name="tempMin" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.temperaturaMin : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Umidade Mín (%)</label>
+            <input type="number" step="0.1" name="umidadeMin" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.umidadeRelativaMin : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vento Máx (km/h)</label>
+            <input type="number" step="0.1" name="ventoMax" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.velocidadeVentoMax : '' %>">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Equipamento</label>
+            <input type="text" name="equipamento" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.equipamento : (defaults.equipamentoPadrao || '') %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Modelo</label>
+            <input type="text" name="modelo" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.modelo : (defaults.modeloPadrao || '') %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo/Ponta</label>
+            <input type="text" name="tipo" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.tipo : (defaults.pontaPulverizacaoPadrao || defaults.tipoPadrao || '') %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ângulo</label>
+            <input type="text" name="angulo" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.angulo : (defaults.anguloPadrao || '') %>">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Altura de Voo (m)</label>
+            <input type="number" step="0.01" name="alturaVooRelatorio" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.alturaVoo : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Largura da Faixa (m)</label>
+            <input type="number" step="0.01" name="larguraFaixa" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.parametrosBasicos ? application.relatorioOperacional.parametrosBasicos.larguraFaixa : '' %>">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Observações</label>
+          <textarea name="observacoes" class="form-textarea"><%= application && application.relatorioOperacional ? application.relatorioOperacional.observacoes : (defaults.observacoesPadrao || '') %></textarea>
+        </div>
+        
+        <h3>Assinaturas</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">RT - Nome</label>
+            <input type="text" name="rtNome" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.assinaturas ? application.relatorioOperacional.assinaturas.responsavelTecnico.nome : (company && company.responsavelTecnico ? company.responsavelTecnico.nome : '') %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RT - CREA</label>
+            <input type="text" name="rtRegistro" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.assinaturas ? application.relatorioOperacional.assinaturas.responsavelTecnico.registro : (company && company.responsavelTecnico ? company.responsavelTecnico.crea : '') %>">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Aplicador - Nome</label>
+            <input type="text" name="aplicadorNome" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.assinaturas ? application.relatorioOperacional.assinaturas.aplicador.nome : '' %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Aplicador - Registro</label>
+            <input type="text" name="aplicadorRegistro" class="form-input" 
+              value="<%= application && application.relatorioOperacional && application.relatorioOperacional.assinaturas ? application.relatorioOperacional.assinaturas.aplicador.registro : '' %>">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Evidências -->
+    <div class="collapsible">
+      <div class="collapsible-header">
+        <span>Evidências (Fotos, PDFs, Croqui)</span>
+        <span>▼</span>
+      </div>
+      <div class="collapsible-content">
+        <div class="form-group">
+          <label class="form-label">Upload de Evidências</label>
+          <input type="file" name="evidencias" class="form-input" multiple accept="image/*,application/pdf">
+          <small>Você pode selecionar múltiplos arquivos (máx 10MB cada)</small>
+        </div>
+        
+        <% if (application && application.evidencias && application.evidencias.length > 0) { %>
+        <div class="form-group">
+          <label class="form-label">Evidências Existentes</label>
+          <ul>
+            <% application.evidencias.forEach(ev => { %>
+            <li><a href="/files/<%= ev._id %>" target="_blank"><%= ev.originalName %></a></li>
+            <% }); %>
+          </ul>
+        </div>
+        <% } %>
+        
+        <div class="form-group">
+          <label class="form-label">Croqui (Imagem)</label>
+          <input type="file" name="croqui" class="form-input" accept="image/*">
+        </div>
+      </div>
+    </div>
+    
+    <div class="d-flex gap-2 mt-3">
+      <a href="/applications" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-primary ml-auto">Salvar Aplicação</button>
+    </div>
+  </form>
+</div>
+
+<script src="/js/estados-cidades.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  popularSelectUF('uf-relatorio', '<%= application && application.relatorioOperacional ? application.relatorioOperacional.uf : '' %>');
+  
+  const ufSelect = document.getElementById('uf-relatorio');
+  const municipioInput = document.getElementById('municipio');
+  
+  if (ufSelect && municipioInput) {
+    ufSelect.addEventListener('change', function() {
+      buscarCidades(this.value, 'municipio');
+    });
+    
+    if (ufSelect.value) {
+      buscarCidades(ufSelect.value, 'municipio');
+    }
+  }
+});
+
+function fillClientData() {
+  const select = document.getElementById('clientSelect');
+  const option = select.options[select.selectedIndex];
+  
+  if (option.value) {
+    document.getElementById('contratante').value = option.text;
+    document.getElementById('propriedade').value = option.dataset.propriedade || '';
+    document.getElementById('localizacao').value = option.dataset.endereco || '';
+    document.getElementById('municipio').value = option.dataset.municipio || '';
+    
+    const ufValue = option.dataset.uf || '';
+    const ufSelect = document.getElementById('uf-relatorio');
+    if (ufSelect && typeof popularSelectUF === 'function') {
+      popularSelectUF('uf-relatorio', ufValue);
+      if (ufValue && typeof buscarCidades === 'function') {
+        buscarCidades(ufValue, 'municipio');
+      }
+    } else if (ufSelect) {
+      ufSelect.value = ufValue;
+      if (ufValue && typeof buscarCidades === 'function') {
+        buscarCidades(ufValue, 'municipio');
+      }
+    }
+    
+    document.getElementById('cpfCnpj').value = option.dataset.cpfcnpj || '';
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>
+

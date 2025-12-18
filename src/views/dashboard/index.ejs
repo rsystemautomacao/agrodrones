@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+
+<h1>Dashboard</h1>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value"><%= stats.aplicacoesMes %></div>
+    <div class="stat-label">Aplicações no Mês</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value"><%= stats.aplicacoesHoje %></div>
+    <div class="stat-label">Aplicações Hoje</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value"><%= stats.totalClientes %></div>
+    <div class="stat-label">Clientes Cadastrados</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value"><%= stats.totalDrones %></div>
+    <div class="stat-label">Drones Cadastrados</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Últimas Aplicações</h2>
+    <a href="/applications/new" class="btn btn-primary">Nova Aplicação</a>
+  </div>
+  
+  <% if (ultimasAplicacoes.length === 0) { %>
+  <div class="empty-state">
+    <div class="empty-state-icon">🚁</div>
+    <p>Nenhuma aplicação cadastrada ainda.</p>
+    <a href="/applications/new" class="btn btn-primary mt-2">Criar Primeira Aplicação</a>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Cliente</th>
+          <th>Propriedade</th>
+          <th>Cultura</th>
+          <th>Área (ha)</th>
+          <th>Produto</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% ultimasAplicacoes.forEach(app => { %>
+        <tr>
+          <td><%= new Date(app.dataHoraInicio).toLocaleString('pt-BR') %></td>
+          <td><%= app.clientId.nomeRazaoSocial %></td>
+          <td><%= app.clientId.propriedadeFazenda || '-' %></td>
+          <td><%= app.culturaTratada %></td>
+          <td><%= app.areaTratada %></td>
+          <td><%= app.marcaComercial %></td>
+          <td>
+            <div class="table-actions">
+              <a href="/applications/<%= app._id %>" class="btn btn-sm btn-outline">Ver</a>
+              <a href="/applications/<%= app._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
+              <a href="/reports/application/<%= app._id %>/pdf" class="btn btn-sm btn-accent" target="_blank">PDF</a>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+

@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+
+<h1>Configurações Padrão</h1>
+
+<% if (typeof query !== 'undefined' && query.success) { %>
+<div class="alert alert-success"><%= query.success %></div>
+<% } %>
+<% if (typeof query !== 'undefined' && query.error) { %>
+<div class="alert alert-error"><%= query.error %></div>
+<% } %>
+
+<div class="card">
+  <p>Configure os valores padrão que serão pré-preenchidos nos formulários de aplicação.</p>
+  
+  <form method="POST" action="/settings">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Ponta de Pulverização Padrão</label>
+        <input type="text" name="pontaPulverizacaoPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.pontaPulverizacaoPadrao : '' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Altura de Voo Padrão (metros)</label>
+        <input type="number" step="0.01" name="alturaVooPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.alturaVooPadrao : '' %>">
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Equipamento Padrão</label>
+        <input type="text" name="equipamentoPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.equipamentoPadrao : '' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Modelo Padrão</label>
+        <input type="text" name="modeloPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.modeloPadrao : '' %>">
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo Padrão</label>
+        <input type="text" name="tipoPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.tipoPadrao : '' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ângulo Padrão</label>
+        <input type="text" name="anguloPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.anguloPadrao : '' %>">
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Unidades Padrão</label>
+        <input type="text" name="unidadesPadrao" class="form-input" 
+          value="<%= company && company.configuracoes ? company.configuracoes.unidadesPadrao || 'L/ha' : 'L/ha' %>">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Observações Padrão</label>
+      <textarea name="observacoesPadrao" class="form-textarea"><%= company && company.configuracoes ? company.configuracoes.observacoesPadrao : '' %></textarea>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+
