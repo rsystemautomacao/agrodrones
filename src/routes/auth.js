@@ -111,10 +111,22 @@ router.post('/register', async (req, res) => {
       });
     }
     
+    // Limpar CNPJ (remover caracteres não numéricos)
+    const cnpjClean = cnpj.replace(/\D/g, '');
+    
+    // Verificar se CNPJ já existe
+    const existingCompany = await Company.findOne({ cnpj: cnpjClean });
+    if (existingCompany) {
+      return res.render('auth/register', { 
+        title: 'Registrar', 
+        error: 'Este CNPJ já está cadastrado no sistema.' 
+      });
+    }
+    
     // Criar empresa (endereço será preenchido no onboarding)
     const company = new Company({
       razaoSocial: companyName,
-      cnpj: cnpj.replace(/\D/g, ''),
+      cnpj: cnpjClean,
       email: email.toLowerCase(),
       onboardingCompleted: false
     });
@@ -150,9 +162,26 @@ router.post('/register', async (req, res) => {
     res.redirect('/onboarding');
   } catch (error) {
     console.error('Erro no registro:', error);
+    
+    // Tratar erros específicos do MongoDB
+    let errorMessage = 'Erro ao registrar. Tente novamente.';
+    
+    if (error.code === 11000) {
+      // Erro de duplicação (chave única)
+      if (error.keyPattern && error.keyPattern.cnpj) {
+        errorMessage = 'Este CNPJ já está cadastrado no sistema.';
+      } else if (error.keyPattern && error.keyPattern.email) {
+        errorMessage = 'Este email já está cadastrado.';
+      } else {
+        errorMessage = 'Já existe um cadastro com estes dados.';
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     res.render('auth/register', { 
       title: 'Registrar', 
-      error: error.message || 'Erro ao registrar. Tente novamente.' 
+      error: errorMessage
     });
   }
 });

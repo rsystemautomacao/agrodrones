@@ -338,6 +338,20 @@
   </div>
   
   <script>
+    // Remover loading se houver erro na página
+    document.addEventListener('DOMContentLoaded', function() {
+      const errorAlert = document.querySelector('.alert-error');
+      if (errorAlert) {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const submitBtn = document.getElementById('submitBtn');
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Criar Conta';
+        }
+      }
+    });
+    
     document.getElementById('registerForm').addEventListener('submit', function(e) {
       // Validar se todos os campos estão preenchidos
       const form = this;
@@ -368,7 +382,7 @@
         document.getElementById('submitBtn').textContent = 'Cadastrando...';
         
         // Permitir que o formulário seja enviado normalmente
-        // O loading será removido quando a página redirecionar
+        // O loading será removido quando a página redirecionar ou recarregar com erro
       }
     });
   </script>
