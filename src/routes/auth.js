@@ -146,7 +146,29 @@ router.post('/register', async (req, res) => {
       onboardingCompleted: false
     });
     
-    await company.save();
+    try {
+      await company.save();
+    } catch (saveError) {
+      // Se o erro for de índice único, verificar novamente se existe
+      if (saveError.code === 11000 && saveError.keyPattern && saveError.keyPattern.cnpj) {
+        // Buscar novamente para confirmar
+        const confirmCompany = await Company.findOne({ cnpj: cnpjClean });
+        if (confirmCompany) {
+          return res.render('auth/register', { 
+            title: 'Registrar', 
+            error: `Este CNPJ já está cadastrado no sistema. Empresa: ${confirmCompany.razaoSocial || 'N/A'}.` 
+          });
+        } else {
+          // Índice corrompido ou problema de sincronização
+          return res.render('auth/register', { 
+            title: 'Registrar', 
+            error: 'Erro ao cadastrar CNPJ. O índice do banco de dados pode estar com problemas. Execute: npm run fix-indexes' 
+          });
+        }
+      }
+      // Re-lançar o erro para ser tratado no catch externo
+      throw saveError;
+    }
     
     // Criar usuário admin
     const user = new User({

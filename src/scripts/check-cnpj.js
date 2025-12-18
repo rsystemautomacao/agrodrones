@@ -65,10 +65,19 @@ async function checkCNPJ() {
       console.log('✅ Nenhum CNPJ duplicado encontrado');
     }
     
-    // Listar todos os índices da coleção
-    console.log('\n📑 Índices da coleção companies:');
-    const indexes = await Company.collection.getIndexes();
-    console.log(JSON.stringify(indexes, null, 2));
+    // Listar todos os índices da coleção (se existir)
+    try {
+      console.log('\n📑 Índices da coleção companies:');
+      const indexes = await Company.collection.getIndexes();
+      console.log(JSON.stringify(indexes, null, 2));
+    } catch (error) {
+      if (error.code === 26 || error.codeName === 'NamespaceNotFound') {
+        console.log('\n⚠️  A coleção "companies" ainda não existe no banco de dados.');
+        console.log('   Ela será criada automaticamente quando você fizer o primeiro cadastro.');
+      } else {
+        console.log('\n❌ Erro ao verificar índices:', error.message);
+      }
+    }
     
     await mongoose.connection.close();
     console.log('\n✅ Verificação concluída');
