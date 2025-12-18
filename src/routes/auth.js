@@ -114,12 +114,27 @@ router.post('/register', async (req, res) => {
     // Limpar CNPJ (remover caracteres não numéricos)
     const cnpjClean = cnpj.replace(/\D/g, '');
     
-    // Verificar se CNPJ já existe
-    const existingCompany = await Company.findOne({ cnpj: cnpjClean });
-    if (existingCompany) {
+    // Validar se o CNPJ tem 14 dígitos
+    if (cnpjClean.length !== 14) {
       return res.render('auth/register', { 
         title: 'Registrar', 
-        error: 'Este CNPJ já está cadastrado no sistema.' 
+        error: 'CNPJ inválido. Deve conter 14 dígitos.' 
+      });
+    }
+    
+    // Verificar se CNPJ já existe
+    const existingCompany = await Company.findOne({ cnpj: cnpjClean.trim() });
+    
+    if (existingCompany) {
+      console.log('⚠️ CNPJ já existe no banco:', {
+        cnpj: cnpjClean,
+        empresaId: existingCompany._id,
+        razaoSocial: existingCompany.razaoSocial,
+        email: existingCompany.email
+      });
+      return res.render('auth/register', { 
+        title: 'Registrar', 
+        error: `Este CNPJ já está cadastrado no sistema. Empresa: ${existingCompany.razaoSocial || 'N/A'}. Se você acabou de excluir, aguarde alguns segundos ou verifique o banco de dados.` 
       });
     }
     
@@ -162,6 +177,12 @@ router.post('/register', async (req, res) => {
     res.redirect('/onboarding');
   } catch (error) {
     console.error('Erro no registro:', error);
+    console.error('Detalhes do erro:', {
+      code: error.code,
+      keyPattern: error.keyPattern,
+      keyValue: error.keyValue,
+      message: error.message
+    });
     
     // Tratar erros específicos do MongoDB
     let errorMessage = 'Erro ao registrar. Tente novamente.';
@@ -169,7 +190,7 @@ router.post('/register', async (req, res) => {
     if (error.code === 11000) {
       // Erro de duplicação (chave única)
       if (error.keyPattern && error.keyPattern.cnpj) {
-        errorMessage = 'Este CNPJ já está cadastrado no sistema.';
+        errorMessage = 'Este CNPJ já está cadastrado no sistema. Verifique se não há registros duplicados no banco de dados.';
       } else if (error.keyPattern && error.keyPattern.email) {
         errorMessage = 'Este email já está cadastrado.';
       } else {
