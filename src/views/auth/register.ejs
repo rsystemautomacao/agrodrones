@@ -224,9 +224,61 @@
     .divider::after {
       right: 0;
     }
+    
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    .loading-overlay.active {
+      display: flex;
+    }
+    
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-top: 5px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    
+    .btn-register:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Cadastrando...</div>
+  </div>
+  
   <div class="register-wrapper">
     <div class="register-container">
       <div class="register-header">
@@ -240,7 +292,7 @@
         <div class="alert-error"><%= error %></div>
         <% } %>
         
-        <form method="POST" action="/auth/register">
+        <form method="POST" action="/auth/register" id="registerForm">
           <div class="form-group">
             <label class="form-label required">Nome Completo</label>
             <input type="text" name="name" class="form-input" placeholder="João Silva" required autofocus>
@@ -275,7 +327,7 @@
             <input type="text" name="cnpj" class="form-input" placeholder="00.000.000/0000-00" required>
           </div>
           
-          <button type="submit" class="btn-register">Criar Conta</button>
+          <button type="submit" class="btn-register" id="submitBtn">Criar Conta</button>
         </form>
       </div>
       
@@ -284,6 +336,42 @@
       </div>
     </div>
   </div>
+  
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      // Validar se todos os campos estão preenchidos
+      const form = this;
+      const inputs = form.querySelectorAll('input[required]');
+      let isValid = true;
+      
+      inputs.forEach(input => {
+        if (!input.value.trim()) {
+          isValid = false;
+        }
+      });
+      
+      // Validar senhas
+      const password = form.querySelector('input[name="password"]').value;
+      const passwordConfirm = form.querySelector('input[name="passwordConfirm"]').value;
+      
+      if (password !== passwordConfirm) {
+        isValid = false;
+        alert('As senhas não coincidem.');
+        e.preventDefault();
+        return false;
+      }
+      
+      if (isValid) {
+        // Mostrar loading
+        document.getElementById('loadingOverlay').classList.add('active');
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').textContent = 'Cadastrando...';
+        
+        // Permitir que o formulário seja enviado normalmente
+        // O loading será removido quando a página redirecionar
+      }
+    });
+  </script>
 </body>
 </html>
 
