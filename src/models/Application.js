@@ -107,17 +107,27 @@ const applicationSchema = new mongoose.Schema({
     }
   },
   
+  // Status da aplicação
+  status: {
+    type: String,
+    enum: ['agendada', 'em_andamento', 'concluida', 'cancelada'],
+    default: 'concluida'
+  },
+
+  // Valor por hectare (opcional, para controle financeiro básico)
+  valorHectare: { type: Number },
+
   // Evidências
   evidencias: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'File'
   }],
-  
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  createdBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 });
 

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const Client = require('../models/Client');
 const Drone = require('../models/Drone');
@@ -166,6 +167,113 @@ router.get('/export/pdf', async (req, res) => {
   } catch (error) {
     console.error('Erro ao gerar PDF consolidado:', error);
     res.status(500).send('Erro ao gerar PDF consolidado');
+  }
+});
+
+// Relatório Financeiro
+router.get('/financeiro', async (req, res) => {
+  try {
+    const companyId = req.session.user.companyId;
+    const companyObjId = new mongoose.Types.ObjectId(companyId);
+
+    const dataInicio = req.query.dataInicio || '';
+    const dataFim = req.query.dataFim || '';
+
+    const matchBase = { companyId: companyObjId, status: { $ne: 'cancelada' } };
+    if (dataInicio || dataFim) {
+      matchBase.dataHoraInicio = {};
+      if (dataInicio) matchBase.dataHoraInicio.$gte = new Date(dataInicio);
+      if (dataFim) {
+        const fim = new Date(dataFim);
+        fim.setHours(23, 59, 59, 999);
+        matchBase.dataHoraInicio.$lte = fim;
+      }
+    }
+
+    // Totais gerais
+    const totalGeral = await Application.aggregate([
+      { $match: matchBase },
+      {
+        $group: {
+          _id: null,
+          totalApps: { $sum: 1 },
+          totalArea: { $sum: '$areaTratada' },
+          totalFaturamento: { $sum: { $multiply: ['$areaTratada', { $ifNull: ['$valorHectare', 0] }] } },
+          appsComValor: { $sum: { $cond: [{ $gt: ['$valorHectare', 0] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    // Por cliente
+    const porCliente = await Application.aggregate([
+      { $match: matchBase },
+      {
+        $group: {
+          _id: '$clientId',
+          totalApps: { $sum: 1 },
+          totalArea: { $sum: '$areaTratada' },
+          totalFaturamento: { $sum: { $multiply: ['$areaTratada', { $ifNull: ['$valorHectare', 0] }] } },
+          appsComValor: { $sum: { $cond: [{ $gt: ['$valorHectare', 0] }, 1, 0] } },
+          ultimaApp: { $max: '$dataHoraInicio' }
+        }
+      },
+      { $sort: { totalFaturamento: -1 } }
+    ]);
+
+    // Popular nomes dos clientes
+    const clientIds = porCliente.map(p => p._id);
+    const clientes = await Client.find({ _id: { $in: clientIds } }, 'nomeRazaoSocial municipio uf');
+    const clienteMap = {};
+    clientes.forEach(c => { clienteMap[c._id.toString()] = c; });
+
+    // Por tipo de atividade
+    const porTipo = await Application.aggregate([
+      { $match: matchBase },
+      {
+        $group: {
+          _id: '$tipoAtividade',
+          totalApps: { $sum: 1 },
+          totalArea: { $sum: '$areaTratada' },
+          totalFaturamento: { $sum: { $multiply: ['$areaTratada', { $ifNull: ['$valorHectare', 0] }] } }
+        }
+      },
+      { $sort: { totalArea: -1 } }
+    ]);
+
+    // Por mês (últimos 6 meses)
+    const porMes = await Application.aggregate([
+      { $match: matchBase },
+      {
+        $group: {
+          _id: { ano: { $year: '$dataHoraInicio' }, mes: { $month: '$dataHoraInicio' } },
+          totalApps: { $sum: 1 },
+          totalArea: { $sum: '$areaTratada' },
+          totalFaturamento: { $sum: { $multiply: ['$areaTratada', { $ifNull: ['$valorHectare', 0] }] } }
+        }
+      },
+      { $sort: { '_id.ano': -1, '_id.mes': -1 } },
+      { $limit: 12 }
+    ]);
+
+    const geral = totalGeral.length > 0 ? totalGeral[0] : { totalApps: 0, totalArea: 0, totalFaturamento: 0, appsComValor: 0 };
+    const tipoMap = { agrotoxico: 'Agrotóxico', fertilizante: 'Fertilizante', inoculante: 'Inoculante', corretivo: 'Corretivo', semeadura: 'Semeadura', outros: 'Outros' };
+    const mesesNomes = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    res.render('reports/financeiro', {
+      title: 'Relatório Financeiro',
+      geral,
+      porCliente,
+      clienteMap,
+      porTipo,
+      porMes: porMes.reverse(),
+      tipoMap,
+      mesesNomes,
+      dataInicio,
+      dataFim
+    });
+  } catch (error) {
+    console.error('Erro no relatório financeiro:', error);
+    res.render('error', { title: 'Erro', message: 'Erro ao gerar relatório financeiro.' });
   }
 });
 

@@ -1,18 +1,59 @@
 <%- include('../partials/header') %>
 
-<div class="card-header">
-  <h1>Aplicações</h1>
-  <a href="/applications/new" class="btn btn-primary">Nova Aplicação</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Aplicações</h1>
+    <% if (typeof total !== 'undefined') { %><p class="page-subtitle"><%= total %> registro(s) encontrado(s)</p><% } %>
+  </div>
+  <a href="/applications/new" class="btn btn-primary">+ Nova Aplicação</a>
 </div>
 
 <% if (typeof query !== 'undefined' && query.success) { %>
 <div class="alert alert-success"><%= query.success %></div>
 <% } %>
+<% if (typeof query !== 'undefined' && query.error) { %>
+<div class="alert alert-error"><%= query.error %></div>
+<% } %>
+
+<!-- Filtros rápidos -->
+<div class="filters">
+  <form method="GET" action="/applications" class="filters-form">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label class="form-label">Buscar</label>
+        <input type="text" name="busca" class="form-input" placeholder="Cliente, cultura ou produto..." value="<%= typeof busca !== 'undefined' ? busca : '' %>">
+      </div>
+      <div class="filter-group">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="">Todos</option>
+          <option value="agendada" <%= (typeof statusFiltro !== 'undefined' && statusFiltro === 'agendada') ? 'selected' : '' %>>Agendada</option>
+          <option value="em_andamento" <%= (typeof statusFiltro !== 'undefined' && statusFiltro === 'em_andamento') ? 'selected' : '' %>>Em Andamento</option>
+          <option value="concluida" <%= (typeof statusFiltro !== 'undefined' && statusFiltro === 'concluida') ? 'selected' : '' %>>Concluída</option>
+          <option value="cancelada" <%= (typeof statusFiltro !== 'undefined' && statusFiltro === 'cancelada') ? 'selected' : '' %>>Cancelada</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="form-label">Data Início</label>
+        <input type="date" name="dataInicio" class="form-input" value="<%= typeof dataInicio !== 'undefined' ? dataInicio : '' %>">
+      </div>
+      <div class="filter-group">
+        <label class="form-label">Data Fim</label>
+        <input type="date" name="dataFim" class="form-input" value="<%= typeof dataFim !== 'undefined' ? dataFim : '' %>">
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <a href="/applications" class="btn btn-outline">Limpar</a>
+      </div>
+    </div>
+  </form>
+</div>
 
 <div class="card">
   <% if (applications.length === 0) { %>
   <div class="empty-state">
-    <p>Nenhuma aplicação cadastrada ainda.</p>
+    <div class="empty-state-icon">&#128641;</div>
+    <p>Nenhuma aplicação encontrada.</p>
     <a href="/applications/new" class="btn btn-primary mt-2">Criar Primeira Aplicação</a>
   </div>
   <% } else { %>
@@ -27,26 +68,35 @@
           <th>Área (ha)</th>
           <th>Produto</th>
           <th>Operador</th>
+          <th>Status</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        <% applications.forEach(app => { %>
+        <% applications.forEach(app => {
+          const statusApp = app.status || 'concluida';
+          const statusClass = { agendada: 'badge-status-agendada', em_andamento: 'badge-status-em_andamento', concluida: 'badge-status-concluida', cancelada: 'badge-status-cancelada' };
+          const statusLabel = { agendada: 'Agendada', em_andamento: 'Em Andamento', concluida: 'Concluída', cancelada: 'Cancelada' };
+        %>
         <tr>
-          <td><%= new Date(app.dataHoraInicio).toLocaleString('pt-BR') %></td>
+          <td>
+            <%= new Date(app.dataHoraInicio).toLocaleDateString('pt-BR') %><br>
+            <small class="text-muted"><%= new Date(app.dataHoraInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %></small>
+          </td>
           <td><%= app.clientId.nomeRazaoSocial %></td>
           <td><%= app.clientId.propriedadeFazenda || '-' %></td>
           <td><%= app.culturaTratada %></td>
-          <td><%= app.areaTratada %></td>
+          <td class="text-right"><strong><%= app.areaTratada %></strong></td>
           <td><%= app.marcaComercial %></td>
           <td><%= app.operatorId.nome %></td>
+          <td><span class="badge <%= statusClass[statusApp] || 'badge-status-concluida' %>"><%= statusLabel[statusApp] || 'Concluída' %></span></td>
           <td>
             <div class="table-actions">
               <a href="/applications/<%= app._id %>" class="btn btn-sm btn-outline">Ver</a>
               <a href="/applications/<%= app._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
               <a href="/reports/application/<%= app._id %>/pdf" class="btn btn-sm btn-accent" target="_blank">PDF</a>
               <form method="POST" action="/applications/<%= app._id %>/duplicate" style="display: inline;">
-                <button type="submit" class="btn btn-sm btn-secondary">Duplicar</button>
+                <button type="submit" class="btn btn-sm btn-outline">Duplicar</button>
               </form>
             </div>
           </td>
@@ -55,15 +105,15 @@
       </tbody>
     </table>
   </div>
-  
+
   <% if (totalPages > 1) { %>
-  <div class="d-flex gap-2 mt-3">
+  <div class="pagination">
     <% if (currentPage > 1) { %>
-    <a href="?page=<%= currentPage - 1 %>" class="btn btn-outline">Anterior</a>
+    <a href="?page=<%= currentPage - 1 %>&busca=<%= typeof busca !== 'undefined' ? busca : '' %>&status=<%= typeof statusFiltro !== 'undefined' ? statusFiltro : '' %>&dataInicio=<%= typeof dataInicio !== 'undefined' ? dataInicio : '' %>&dataFim=<%= typeof dataFim !== 'undefined' ? dataFim : '' %>" class="btn btn-outline">&#8592; Anterior</a>
     <% } %>
-    <span style="margin: auto;">Página <%= currentPage %> de <%= totalPages %></span>
+    <span class="pagination-info">Página <%= currentPage %> de <%= totalPages %></span>
     <% if (currentPage < totalPages) { %>
-    <a href="?page=<%= currentPage + 1 %>" class="btn btn-outline">Próxima</a>
+    <a href="?page=<%= currentPage + 1 %>&busca=<%= typeof busca !== 'undefined' ? busca : '' %>&status=<%= typeof statusFiltro !== 'undefined' ? statusFiltro : '' %>&dataInicio=<%= typeof dataInicio !== 'undefined' ? dataInicio : '' %>&dataFim=<%= typeof dataFim !== 'undefined' ? dataFim : '' %>" class="btn btn-outline">Próxima &#8594;</a>
     <% } %>
   </div>
   <% } %>
@@ -71,4 +121,3 @@
 </div>
 
 <%- include('../partials/footer') %>
-

@@ -1,12 +1,14 @@
 <%- include('../partials/header') %>
 
-<div class="card">
-  <div class="card-header">
-    <h1>Clientes</h1>
-    <a href="/clients/new" class="btn btn-primary">Novo Cliente</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Clientes</h1>
+    <p class="page-subtitle"><%= clients.length %> cliente(s) cadastrado(s)</p>
   </div>
-  
-  <% if (typeof query !== 'undefined' && query.success) { %>
+  <a href="/clients/new" class="btn btn-primary">+ Novo Cliente</a>
+</div>
+
+<% if (typeof query !== 'undefined' && query.success) { %>
 <div class="alert alert-success"><%= query.success %></div>
 <% } %>
 <% if (typeof query !== 'undefined' && query.error) { %>
@@ -16,6 +18,7 @@
 <div class="card">
   <% if (clients.length === 0) { %>
   <div class="empty-state">
+    <div class="empty-state-icon">&#128101;</div>
     <p>Nenhum cliente cadastrado ainda.</p>
     <a href="/clients/new" class="btn btn-primary mt-2">Cadastrar Primeiro Cliente</a>
   </div>
@@ -28,20 +31,30 @@
           <th>CPF/CNPJ</th>
           <th>Propriedade</th>
           <th>Município/UF</th>
+          <th>Aplicações</th>
+          <th>Área Total (ha)</th>
+          <th>Última Aplicação</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        <% clients.forEach(client => { %>
+        <% clients.forEach(client => {
+          const s = statsMap[client._id.toString()] || {};
+        %>
         <tr>
-          <td><%= client.nomeRazaoSocial %></td>
+          <td><a href="/clients/<%= client._id %>" class="client-name-link"><strong><%= client.nomeRazaoSocial %></strong></a></td>
           <td><%= client.cpfCnpj || '-' %></td>
           <td><%= client.propriedadeFazenda || '-' %></td>
           <td><%= client.municipio %>/<%= client.uf %></td>
+          <td class="text-right"><%= s.totalApps || 0 %></td>
+          <td class="text-right"><strong><%= s.totalArea ? s.totalArea.toFixed(1) : '0' %></strong></td>
+          <td><%= s.ultimaApp ? new Date(s.ultimaApp).toLocaleDateString('pt-BR') : '—' %></td>
           <td>
             <div class="table-actions">
+              <a href="/clients/<%= client._id %>" class="btn btn-sm btn-outline">Histórico</a>
               <a href="/clients/<%= client._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
-              <form method="POST" action="/clients/<%= client._id %>/delete" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja deletar este cliente?');">
+              <form method="POST" action="/clients/<%= client._id %>/delete" style="display: inline;"
+                onsubmit="return confirm('Tem certeza que deseja deletar este cliente?');">
                 <button type="submit" class="btn btn-sm btn-danger">Deletar</button>
               </form>
             </div>
@@ -55,4 +68,3 @@
 </div>
 
 <%- include('../partials/footer') %>
-

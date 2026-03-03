@@ -15,15 +15,16 @@
         <img src="/images/logo.png" alt="AgroDrones" style="height: 40px; margin-right: 10px; vertical-align: middle;">
         <span style="vertical-align: middle;">Agro<span style="color: var(--secondary);">Drones</span></span>
       </a>
+      <% const cp = typeof currentPath !== 'undefined' ? currentPath : ''; %>
       <nav class="nav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/applications">Aplicações</a>
-        <a href="/clients">Clientes</a>
-        <a href="/drones">Drones</a>
-        <a href="/operators">Operadores</a>
-        <a href="/reports">Relatórios</a>
+        <a href="/dashboard" class="<%= cp === '/dashboard' ? 'active' : '' %>">Dashboard</a>
+        <a href="/applications" class="<%= cp.startsWith('/applications') ? 'active' : '' %>">Aplicações</a>
+        <a href="/clients" class="<%= cp.startsWith('/clients') ? 'active' : '' %>">Clientes</a>
+        <a href="/drones" class="<%= cp.startsWith('/drones') ? 'active' : '' %>">Drones</a>
+        <a href="/operators" class="<%= cp.startsWith('/operators') ? 'active' : '' %>">Operadores</a>
+        <a href="/reports" class="<%= cp.startsWith('/reports') ? 'active' : '' %>">Relatórios</a>
         <% if (user.role === 'admin') { %>
-        <a href="/settings">Configurações</a>
+        <a href="/settings" class="<%= cp.startsWith('/settings') ? 'active' : '' %>">Configurações</a>
         <% } %>
       </nav>
       <div class="user-menu">

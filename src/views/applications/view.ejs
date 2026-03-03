@@ -1,12 +1,20 @@
 <%- include('../partials/header') %>
 
-<div class="card-header">
-  <h1>Aplicação #<%= application._id.toString().slice(-6) %></h1>
+<%
+  const statusApp = application.status || 'concluida';
+  const statusClass = { agendada: 'badge-status-agendada', em_andamento: 'badge-status-em_andamento', concluida: 'badge-status-concluida', cancelada: 'badge-status-cancelada' };
+  const statusLabel = { agendada: 'Agendada', em_andamento: 'Em Andamento', concluida: 'Concluída', cancelada: 'Cancelada' };
+%>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Aplicação #<%= application._id.toString().slice(-6) %> <span class="badge <%= statusClass[statusApp] %>"><%= statusLabel[statusApp] %></span></h1>
+    <p class="page-subtitle">Registrada em <%= new Date(application.createdAt).toLocaleDateString('pt-BR') %><% if (application.createdBy) { %> por <%= application.createdBy.name %><% } %></p>
+  </div>
   <div class="d-flex gap-2">
     <a href="/applications/<%= application._id %>/edit" class="btn btn-secondary">Editar</a>
     <a href="/reports/application/<%= application._id %>/pdf" class="btn btn-accent" target="_blank">Gerar PDF MAPA</a>
     <form method="POST" action="/applications/<%= application._id %>/duplicate" style="display: inline;">
-      <button type="submit" class="btn btn-secondary">Duplicar</button>
+      <button type="submit" class="btn btn-outline">Duplicar</button>
     </form>
   </div>
 </div>
@@ -34,6 +42,9 @@
         <div><strong>Cultura:</strong> <%= application.culturaTratada %></div>
         <div><strong>Área Tratada:</strong> <%= application.areaTratada %> hectares</div>
         <div><strong>Tipo:</strong> <%= application.tipoAtividade %></div>
+        <% if (application.valorHectare) { %>
+        <div><strong>Valor por Ha:</strong> R$ <%= application.valorHectare.toFixed(2) %> &nbsp;|&nbsp; <strong>Total:</strong> R$ <%= (application.valorHectare * application.areaTratada).toFixed(2) %></div>
+        <% } %>
       </div>
       <div class="form-row">
         <div><strong>Produto:</strong> <%= application.marcaComercial %></div>

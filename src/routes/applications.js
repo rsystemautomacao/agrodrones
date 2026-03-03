@@ -70,23 +70,71 @@ router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
-    
-    const applications = await Application.find({ companyId: req.session.user.companyId })
-      .populate('clientId', 'nomeRazaoSocial propriedadeFazenda municipio uf')
-      .populate('droneId', 'marcaModelo identificacaoRegistro')
-      .populate('operatorId', 'nome')
-      .sort({ dataHoraInicio: -1 })
-      .skip(skip)
-      .limit(limit);
-    
-    const total = await Application.countDocuments({ companyId: req.session.user.companyId });
-    
+
+    const busca = req.query.busca || '';
+    const statusFiltro = req.query.status || '';
+    const dataInicio = req.query.dataInicio || '';
+    const dataFim = req.query.dataFim || '';
+
+    // Construir query com filtros
+    const query = { companyId: req.session.user.companyId };
+
+    if (statusFiltro) {
+      query.status = statusFiltro;
+    }
+    if (dataInicio || dataFim) {
+      query.dataHoraInicio = {};
+      if (dataInicio) query.dataHoraInicio.$gte = new Date(dataInicio);
+      if (dataFim) {
+        const fim = new Date(dataFim);
+        fim.setHours(23, 59, 59, 999);
+        query.dataHoraInicio.$lte = fim;
+      }
+    }
+
+    let applications;
+    let total;
+
+    if (busca) {
+      // Busca textual: precisamos filtrar após populate de clientId
+      const allApps = await Application.find(query)
+        .populate('clientId', 'nomeRazaoSocial propriedadeFazenda municipio uf')
+        .populate('droneId', 'marcaModelo identificacaoRegistro')
+        .populate('operatorId', 'nome')
+        .sort({ dataHoraInicio: -1 });
+
+      const buscaLower = busca.toLowerCase();
+      const filtered = allApps.filter(app =>
+        (app.clientId?.nomeRazaoSocial || '').toLowerCase().includes(buscaLower) ||
+        (app.culturaTratada || '').toLowerCase().includes(buscaLower) ||
+        (app.marcaComercial || '').toLowerCase().includes(buscaLower)
+      );
+      total = filtered.length;
+      applications = filtered.slice(skip, skip + limit);
+    } else {
+      [applications, total] = await Promise.all([
+        Application.find(query)
+          .populate('clientId', 'nomeRazaoSocial propriedadeFazenda municipio uf')
+          .populate('droneId', 'marcaModelo identificacaoRegistro')
+          .populate('operatorId', 'nome')
+          .sort({ dataHoraInicio: -1 })
+          .skip(skip)
+          .limit(limit),
+        Application.countDocuments(query)
+      ]);
+    }
+
     res.render('applications/index', {
       title: 'Aplicações',
+      currentPath: '/applications',
       applications,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       total,
+      busca,
+      statusFiltro,
+      dataInicio,
+      dataFim,
       query: req.query
     });
   } catch (error) {
@@ -329,6 +377,8 @@ router.post('/', uploadFields, async (req, res) => {
           }
         }
       },
+      status: req.body.status || 'concluida',
+      valorHectare: req.body.valorHectare ? parseFloat(req.body.valorHectare) : undefined,
       evidencias: evidenciasIds,
       createdBy: req.session.user.id
     });
@@ -429,6 +479,8 @@ router.post('/:id', uploadFields, async (req, res) => {
       volume: parseFloat(req.body.volume),
       dosagemAplicada: req.body.dosagemAplicada,
       alturaVoo: parseFloat(req.body.alturaVoo),
+      status: req.body.status || application.status || 'concluida',
+      valorHectare: req.body.valorHectare ? parseFloat(req.body.valorHectare) : application.valorHectare,
       meteorologia: {
         temperatura: parseFloat(req.body.temperatura),
         umidadeRelativa: parseFloat(req.body.umidadeRelativa),

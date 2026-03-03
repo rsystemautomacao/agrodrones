@@ -118,13 +118,31 @@
           </div>
           <div class="form-group">
             <label class="form-label required">Altura de Voo (metros)</label>
-            <input type="number" step="0.01" name="alturaVoo" class="form-input" 
+            <input type="number" step="0.01" name="alturaVoo" class="form-input"
               value="<%= application ? application.alturaVoo : (defaults.alturaVooPadrao || '') %>" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Status da Aplicação</label>
+            <select name="status" class="form-select" required>
+              <option value="agendada" <%= application && application.status === 'agendada' ? 'selected' : '' %>>Agendada</option>
+              <option value="em_andamento" <%= application && application.status === 'em_andamento' ? 'selected' : '' %>>Em Andamento</option>
+              <option value="concluida" <%= (!application || !application.status || application.status === 'concluida') ? 'selected' : '' %>>Concluída</option>
+              <option value="cancelada" <%= application && application.status === 'cancelada' ? 'selected' : '' %>>Cancelada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor por Hectare (R$) <small style="color: var(--gray);">Opcional</small></label>
+            <input type="number" step="0.01" name="valorHectare" class="form-input"
+              value="<%= application && application.valorHectare ? application.valorHectare : '' %>"
+              placeholder="Ex: 25.00">
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- Meteorologia -->
     <div class="collapsible">
       <div class="collapsible-header">

@@ -40,10 +40,11 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 
-// Middleware para tornar sessão disponível nas views
+// Middleware para tornar sessão e caminho atual disponíveis nas views
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.company = req.session.company || null;
+  res.locals.currentPath = req.path === '/' ? req.originalUrl : '/' + req.originalUrl.split('/')[1];
   next();
 });
 

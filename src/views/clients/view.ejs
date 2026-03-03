@@ -1,0 +1,222 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= client.nomeRazaoSocial %></h1>
+    <p class="page-subtitle">
+      <%= client.municipio %>/<%= client.uf %>
+      <% if (client.propriedadeFazenda) { %> &nbsp;·&nbsp; Fazenda: <strong><%= client.propriedadeFazenda %></strong><% } %>
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/applications/new" class="btn btn-primary">+ Nova Aplicação</a>
+    <a href="/clients/<%= client._id %>/edit" class="btn btn-outline">Editar Cliente</a>
+  </div>
+</div>
+
+<!-- Cards de Resumo -->
+<div class="stats-grid stats-grid-4">
+  <div class="stat-card stat-card-blue">
+    <div class="stat-icon">&#9992;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= clientStats.totalApps %></div>
+      <div class="stat-label">Total de Aplicações</div>
+      <% if (clientStats.primeiraApp) { %>
+      <div class="stat-sub">Desde <%= new Date(clientStats.primeiraApp).toLocaleDateString('pt-BR') %></div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-green">
+    <div class="stat-icon">&#127807;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= clientStats.totalArea ? clientStats.totalArea.toFixed(1) : '0' %></div>
+      <div class="stat-label">Hectares Totais Tratados</div>
+      <% if (clientStats.totalApps > 0) { %>
+      <div class="stat-sub">Média: <%= (clientStats.totalArea / clientStats.totalApps).toFixed(1) %> ha/aplicação</div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-orange">
+    <div class="stat-icon">&#128200;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= clientStats.totalVolume ? clientStats.totalVolume.toFixed(0) : '0' %> L</div>
+      <div class="stat-label">Volume Total Aplicado</div>
+      <div class="stat-sub">Litros acumulados</div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-indigo">
+    <div class="stat-icon">&#128176;</div>
+    <div class="stat-body">
+      <% if (clientStats.appsComValor > 0) { %>
+      <div class="stat-value">R$ <%= clientStats.totalFaturamento.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) %></div>
+      <div class="stat-label">Faturamento Estimado</div>
+      <div class="stat-sub"><%= clientStats.appsComValor %> aplic. com valor/ha</div>
+      <% } else { %>
+      <div class="stat-value">—</div>
+      <div class="stat-label">Faturamento</div>
+      <div class="stat-sub">Adicione valor/ha às aplicações</div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Dados cadastrais + culturas lado a lado -->
+<div class="client-detail-grid">
+  <!-- Dados do cliente -->
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Dados Cadastrais</h2></div>
+    <div class="detail-list">
+      <div class="detail-row">
+        <span class="detail-label">Nome/Razão Social</span>
+        <span class="detail-value"><%= client.nomeRazaoSocial %></span>
+      </div>
+      <% if (client.cpfCnpj) { %>
+      <div class="detail-row">
+        <span class="detail-label">CPF/CNPJ</span>
+        <span class="detail-value"><%= client.cpfCnpj %></span>
+      </div>
+      <% } %>
+      <% if (client.propriedadeFazenda) { %>
+      <div class="detail-row">
+        <span class="detail-label">Propriedade/Fazenda</span>
+        <span class="detail-value"><%= client.propriedadeFazenda %></span>
+      </div>
+      <% } %>
+      <% if (client.enderecoLocalizacao) { %>
+      <div class="detail-row">
+        <span class="detail-label">Endereço/Localização</span>
+        <span class="detail-value"><%= client.enderecoLocalizacao %></span>
+      </div>
+      <% } %>
+      <div class="detail-row">
+        <span class="detail-label">Município/UF</span>
+        <span class="detail-value"><%= client.municipio %>/<%= client.uf %></span>
+      </div>
+      <% if (client.observacoes) { %>
+      <div class="detail-row">
+        <span class="detail-label">Observações</span>
+        <span class="detail-value"><%= client.observacoes %></span>
+      </div>
+      <% } %>
+      <% if (clientStats.ultimaApp) { %>
+      <div class="detail-row">
+        <span class="detail-label">Última Aplicação</span>
+        <span class="detail-value"><%= new Date(clientStats.ultimaApp).toLocaleDateString('pt-BR') %></span>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Culturas e tipos de atividade -->
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Culturas Tratadas</h2></div>
+    <% if (porCulturaAgg.length === 0) { %>
+    <div class="empty-state" style="padding: 1.5rem;">
+      <p>Sem aplicações registradas.</p>
+    </div>
+    <% } else { %>
+    <div class="cultura-list">
+      <% porCulturaAgg.forEach((c, idx) => { %>
+      <div class="cultura-item">
+        <div class="cultura-info">
+          <span class="cultura-nome"><%= c._id %></span>
+          <span class="cultura-stats"><%= c.count %> aplic. · <%= c.area.toFixed(1) %> ha</span>
+        </div>
+        <div class="cultura-bar-wrap">
+          <div class="cultura-bar" style="width: <%= Math.round((c.area / clientStats.totalArea) * 100) %>%"></div>
+        </div>
+        <span class="cultura-pct"><%= Math.round((c.area / clientStats.totalArea) * 100) %>%</span>
+      </div>
+      <% }); %>
+    </div>
+
+    <% if (porTipoAgg.length > 0) { %>
+    <div style="margin-top: 1.5rem;">
+      <strong style="font-size: 0.85rem; color: var(--gray);">TIPOS DE ATIVIDADE</strong>
+      <div class="badges-row" style="margin-top: 0.5rem;">
+        <% const tipoMap = { agrotoxico: 'Agrotóxico', fertilizante: 'Fertilizante', inoculante: 'Inoculante', corretivo: 'Corretivo', semeadura: 'Semeadura', outros: 'Outros' }; %>
+        <% porTipoAgg.forEach(t => { %>
+        <span class="badge badge-secondary"><%= tipoMap[t._id] || t._id %>: <%= t.count %></span>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+    <% } %>
+  </div>
+</div>
+
+<!-- Histórico de aplicações -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Histórico de Aplicações</h2>
+    <span class="text-muted" style="font-size: 0.9rem;">Últimas 20 aplicações</span>
+  </div>
+
+  <% if (aplicacoes.length === 0) { %>
+  <div class="empty-state">
+    <div class="empty-state-icon">&#128641;</div>
+    <p>Nenhuma aplicação registrada para este cliente.</p>
+    <a href="/applications/new" class="btn btn-primary mt-2">Criar Aplicação</a>
+  </div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Cultura</th>
+          <th>Área (ha)</th>
+          <th>Produto</th>
+          <th>Operador</th>
+          <th>Drone</th>
+          <th>Status</th>
+          <% if (clientStats.appsComValor > 0) { %><th>Valor (R$)</th><% } %>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% aplicacoes.forEach(app => {
+          const statusApp = app.status || 'concluida';
+          const statusClass = { agendada: 'badge-status-agendada', em_andamento: 'badge-status-em_andamento', concluida: 'badge-status-concluida', cancelada: 'badge-status-cancelada' };
+          const statusLabel = { agendada: 'Agendada', em_andamento: 'Em Andamento', concluida: 'Concluída', cancelada: 'Cancelada' };
+        %>
+        <tr>
+          <td><%= new Date(app.dataHoraInicio).toLocaleDateString('pt-BR') %></td>
+          <td><%= app.culturaTratada %></td>
+          <td><strong><%= app.areaTratada %></strong></td>
+          <td><%= app.marcaComercial %></td>
+          <td><%= app.operatorId?.nome || '-' %></td>
+          <td><%= app.droneId?.marcaModelo || '-' %></td>
+          <td><span class="badge <%= statusClass[statusApp] || 'badge-status-concluida' %>"><%= statusLabel[statusApp] %></span></td>
+          <% if (clientStats.appsComValor > 0) { %>
+          <td><% if (app.valorHectare) { %>R$ <%= (app.valorHectare * app.areaTratada).toFixed(2) %><% } else { %>—<% } %></td>
+          <% } %>
+          <td>
+            <div class="table-actions">
+              <a href="/applications/<%= app._id %>" class="btn btn-sm btn-outline">Ver</a>
+              <a href="/reports/application/<%= app._id %>/pdf" class="btn btn-sm btn-accent" target="_blank">PDF</a>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+      <% if (clientStats.appsComValor > 0) { %>
+      <tfoot>
+        <tr style="background: var(--light); font-weight: 600;">
+          <td colspan="2">Total</td>
+          <td><%= clientStats.totalArea.toFixed(1) %> ha</td>
+          <td colspan="4"></td>
+          <td>R$ <%= clientStats.totalFaturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+          <td></td>
+        </tr>
+      </tfoot>
+      <% } %>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

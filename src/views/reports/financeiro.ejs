@@ -1,0 +1,262 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Relatório Financeiro</h1>
+    <p class="page-subtitle">Faturamento estimado baseado em valor/hectare das aplicações</p>
+  </div>
+  <a href="/reports" class="btn btn-outline">← Voltar</a>
+</div>
+
+<!-- Filtro de período -->
+<div class="filters">
+  <form method="GET" action="/reports/financeiro" class="filters-form">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label class="form-label">Data Início</label>
+        <input type="date" name="dataInicio" class="form-input" value="<%= dataInicio %>">
+      </div>
+      <div class="filter-group">
+        <label class="form-label">Data Fim</label>
+        <input type="date" name="dataFim" class="form-input" value="<%= dataFim %>">
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <a href="/reports/financeiro" class="btn btn-outline">Limpar</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<% if (geral.appsComValor === 0) { %>
+<div class="alert alert-info">
+  <strong>ℹ️ Nenhuma aplicação possui valor/hectare cadastrado.</strong>
+  Para usar este relatório, adicione o campo <em>Valor por Hectare</em> ao criar ou editar aplicações.
+</div>
+<% } %>
+
+<!-- Cards de totais -->
+<div class="stats-grid stats-grid-4">
+  <div class="stat-card stat-card-indigo">
+    <div class="stat-icon">&#128176;</div>
+    <div class="stat-body">
+      <div class="stat-value">R$ <%= geral.totalFaturamento.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) %></div>
+      <div class="stat-label">Faturamento Estimado</div>
+      <div class="stat-sub"><%= geral.appsComValor %> de <%= geral.totalApps %> aplic. com valor/ha</div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-green">
+    <div class="stat-icon">&#127807;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= geral.totalArea ? geral.totalArea.toFixed(1) : '0' %> ha</div>
+      <div class="stat-label">Área Total Tratada</div>
+      <% if (geral.totalFaturamento > 0 && geral.totalArea > 0) { %>
+      <div class="stat-sub">Média: R$ <%= (geral.totalFaturamento / geral.totalArea).toFixed(2) %>/ha</div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-blue">
+    <div class="stat-icon">&#9992;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= geral.totalApps %></div>
+      <div class="stat-label">Total de Aplicações</div>
+      <% if (geral.totalFaturamento > 0 && geral.totalApps > 0) { %>
+      <div class="stat-sub">Média: R$ <%= (geral.totalFaturamento / geral.totalApps).toFixed(0) %>/aplicação</div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-orange">
+    <div class="stat-icon">&#128101;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= porCliente.length %></div>
+      <div class="stat-label">Clientes Atendidos</div>
+      <% if (geral.totalFaturamento > 0 && porCliente.length > 0) { %>
+      <div class="stat-sub">Média: R$ <%= (geral.totalFaturamento / porCliente.length).toFixed(0) %>/cliente</div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Gráfico mensal + por tipo -->
+<div class="charts-grid">
+  <div class="card chart-card">
+    <div class="card-header"><h2 class="card-title">Faturamento Mensal (R$)</h2></div>
+    <div class="chart-container">
+      <canvas id="chartMes"></canvas>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="card-header"><h2 class="card-title">Área por Tipo de Atividade</h2></div>
+    <div class="chart-container chart-container-sm">
+      <canvas id="chartTipo"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Por cliente -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Faturamento por Cliente</h2>
+  </div>
+
+  <% if (porCliente.length === 0) { %>
+  <div class="empty-state"><p>Nenhuma aplicação no período selecionado.</p></div>
+  <% } else { %>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Município/UF</th>
+          <th>Aplicações</th>
+          <th>Área (ha)</th>
+          <th>Última Aplicação</th>
+          <th>Faturamento Estimado</th>
+          <th>% do Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% porCliente.forEach((item, idx) => {
+          const cliente = clienteMap[item._id?.toString()] || {};
+          const pct = geral.totalFaturamento > 0 ? (item.totalFaturamento / geral.totalFaturamento * 100) : 0;
+        %>
+        <tr>
+          <td><%= idx + 1 %></td>
+          <td>
+            <% if (item._id) { %>
+            <a href="/clients/<%= item._id %>" class="client-name-link"><strong><%= cliente.nomeRazaoSocial || 'Cliente' %></strong></a>
+            <% } else { %><strong>—</strong><% } %>
+          </td>
+          <td><%= cliente.municipio ? cliente.municipio + '/' + cliente.uf : '—' %></td>
+          <td><%= item.totalApps %></td>
+          <td><strong><%= item.totalArea.toFixed(1) %></strong></td>
+          <td><%= item.ultimaApp ? new Date(item.ultimaApp).toLocaleDateString('pt-BR') : '—' %></td>
+          <td>
+            <% if (item.appsComValor > 0) { %>
+            <strong style="color: var(--secondary);">R$ <%= item.totalFaturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong>
+            <% } else { %>
+            <span class="text-muted">Sem valor/ha</span>
+            <% } %>
+          </td>
+          <td>
+            <div class="manut-bar-wrap" style="width: 80px; display: inline-block;">
+              <div class="manut-bar manut-bar-ok" style="width: <%= pct.toFixed(0) %>%"></div>
+            </div>
+            <%= pct.toFixed(1) %>%
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+      <tfoot>
+        <tr style="background: var(--light); font-weight: 700;">
+          <td colspan="4">Total</td>
+          <td><%= geral.totalArea.toFixed(1) %> ha</td>
+          <td></td>
+          <td style="color: var(--secondary);">R$ <%= geral.totalFaturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+          <td>100%</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Por tipo de atividade -->
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Por Tipo de Atividade</h2></div>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Aplicações</th>
+          <th>Área (ha)</th>
+          <th>Faturamento (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% porTipo.forEach(t => { %>
+        <tr>
+          <td><%= tipoMap[t._id] || t._id %></td>
+          <td><%= t.totalApps %></td>
+          <td><strong><%= t.totalArea.toFixed(1) %></strong></td>
+          <td><%= t.totalFaturamento > 0 ? 'R$ ' + t.totalFaturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—' %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const porMes = <%- JSON.stringify(porMes) %>;
+  const mesesNomes = <%- JSON.stringify(mesesNomes) %>;
+  const porTipoData = <%- JSON.stringify(porTipo) %>;
+  const tipoMap = <%- JSON.stringify(tipoMap) %>;
+
+  // Gráfico mensal
+  const ctxMes = document.getElementById('chartMes').getContext('2d');
+  new Chart(ctxMes, {
+    type: 'bar',
+    data: {
+      labels: porMes.map(m => mesesNomes[m._id.mes] + '/' + String(m._id.ano).slice(2)),
+      datasets: [
+        {
+          label: 'Faturamento (R$)',
+          data: porMes.map(m => m.totalFaturamento),
+          backgroundColor: 'rgba(47, 191, 113, 0.7)',
+          borderColor: '#2FBF71',
+          borderWidth: 2,
+          borderRadius: 6
+        },
+        {
+          label: 'Área (ha)',
+          data: porMes.map(m => m.totalArea),
+          type: 'line',
+          borderColor: '#1E5EFF',
+          backgroundColor: 'rgba(30,94,255,0.08)',
+          borderWidth: 2,
+          pointRadius: 4,
+          tension: 0.3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { title: { display: true, text: 'R$' } },
+        y1: { position: 'right', title: { display: true, text: 'ha' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+
+  // Gráfico por tipo
+  const ctxTipo = document.getElementById('chartTipo').getContext('2d');
+  new Chart(ctxTipo, {
+    type: 'doughnut',
+    data: {
+      labels: porTipoData.length > 0 ? porTipoData.map(t => tipoMap[t._id] || t._id) : ['Sem dados'],
+      datasets: [{
+        data: porTipoData.length > 0 ? porTipoData.map(t => t.totalArea) : [1],
+        backgroundColor: ['#2FBF71','#1E5EFF','#FF8A00','#6f42c1','#17a2b8','#6c757d'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,35 +1,119 @@
 <%- include('../partials/header') %>
 
-<h1>Dashboard</h1>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Visão geral das operações de pulverização</p>
+  </div>
+  <a href="/applications/new" class="btn btn-primary">+ Nova Aplicação</a>
+</div>
 
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-value"><%= stats.aplicacoesMes %></div>
-    <div class="stat-label">Aplicações no Mês</div>
+<!-- Cards de Estatísticas -->
+<div class="stats-grid stats-grid-5">
+  <div class="stat-card stat-card-blue">
+    <div class="stat-icon">&#9992;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= stats.aplicacoesMes %></div>
+      <div class="stat-label">Aplicações no Mês</div>
+      <% if (stats.tendencia !== null) { %>
+      <div class="stat-trend <%= stats.tendencia >= 0 ? 'trend-up' : 'trend-down' %>">
+        <%= stats.tendencia >= 0 ? '▲' : '▼' %> <%= Math.abs(stats.tendencia) %>% vs mês anterior
+      </div>
+      <% } %>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-value"><%= stats.aplicacoesHoje %></div>
-    <div class="stat-label">Aplicações Hoje</div>
+
+  <div class="stat-card stat-card-green">
+    <div class="stat-icon">&#127807;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= stats.areaMes.toLocaleString('pt-BR') %></div>
+      <div class="stat-label">Hectares Tratados (mês)</div>
+      <div class="stat-sub">Aplicações concluídas</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-value"><%= stats.totalClientes %></div>
-    <div class="stat-label">Clientes Cadastrados</div>
+
+  <div class="stat-card stat-card-orange">
+    <div class="stat-icon">&#9728;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= stats.aplicacoesHoje %></div>
+      <div class="stat-label">Aplicações Hoje</div>
+      <div class="stat-sub">Dia atual</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-value"><%= stats.totalDrones %></div>
-    <div class="stat-label">Drones Cadastrados</div>
+
+  <div class="stat-card stat-card-indigo">
+    <div class="stat-icon">&#128101;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= stats.totalClientes %></div>
+      <div class="stat-label">Clientes Cadastrados</div>
+      <a href="/clients/new" class="stat-sub stat-link">+ Adicionar cliente</a>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-teal">
+    <div class="stat-icon">&#128640;</div>
+    <div class="stat-body">
+      <div class="stat-value"><%= stats.totalDrones %></div>
+      <div class="stat-label">Drones Ativos</div>
+      <a href="/drones" class="stat-sub stat-link">Gerenciar frota</a>
+    </div>
   </div>
 </div>
 
+<!-- Cards de Status -->
+<div class="status-summary">
+  <div class="status-item status-agendada">
+    <span class="status-count"><%= statusMap['agendada'] || 0 %></span>
+    <span class="status-label">Agendadas</span>
+  </div>
+  <div class="status-item status-em_andamento">
+    <span class="status-count"><%= statusMap['em_andamento'] || 0 %></span>
+    <span class="status-label">Em Andamento</span>
+  </div>
+  <div class="status-item status-concluida">
+    <span class="status-count"><%= (statusMap['concluida'] || 0) + (statusMap[null] || 0) + (statusMap['undefined'] || 0) %></span>
+    <span class="status-label">Concluídas</span>
+  </div>
+  <div class="status-item status-cancelada">
+    <span class="status-count"><%= statusMap['cancelada'] || 0 %></span>
+    <span class="status-label">Canceladas</span>
+  </div>
+</div>
+
+<!-- Gráficos -->
+<div class="charts-grid">
+  <div class="card chart-card">
+    <div class="card-header">
+      <h2 class="card-title">Área Tratada por Mês (ha)</h2>
+    </div>
+    <div class="chart-container">
+      <canvas id="areaChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="card-header">
+      <h2 class="card-title">Aplicações por Tipo de Atividade</h2>
+    </div>
+    <div class="chart-container chart-container-sm">
+      <canvas id="tipoChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Últimas Aplicações -->
 <div class="card">
   <div class="card-header">
     <h2 class="card-title">Últimas Aplicações</h2>
-    <a href="/applications/new" class="btn btn-primary">Nova Aplicação</a>
+    <div class="d-flex gap-2">
+      <a href="/applications" class="btn btn-outline btn-sm">Ver Todas</a>
+      <a href="/applications/new" class="btn btn-primary btn-sm">+ Nova</a>
+    </div>
   </div>
-  
+
   <% if (ultimasAplicacoes.length === 0) { %>
   <div class="empty-state">
-    <div class="empty-state-icon">🚁</div>
+    <div class="empty-state-icon">&#128641;</div>
     <p>Nenhuma aplicação cadastrada ainda.</p>
     <a href="/applications/new" class="btn btn-primary mt-2">Criar Primeira Aplicação</a>
   </div>
@@ -38,28 +122,37 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Data/Hora</th>
-          <th>Cliente</th>
-          <th>Propriedade</th>
+          <th>Data</th>
+          <th>Cliente / Propriedade</th>
           <th>Cultura</th>
           <th>Área (ha)</th>
           <th>Produto</th>
+          <th>Status</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
         <% ultimasAplicacoes.forEach(app => { %>
         <tr>
-          <td><%= new Date(app.dataHoraInicio).toLocaleString('pt-BR') %></td>
-          <td><%= app.clientId.nomeRazaoSocial %></td>
-          <td><%= app.clientId.propriedadeFazenda || '-' %></td>
+          <td><%= new Date(app.dataHoraInicio).toLocaleDateString('pt-BR') %><br><small class="text-muted"><%= new Date(app.dataHoraInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %></small></td>
+          <td>
+            <strong><%= app.clientId.nomeRazaoSocial %></strong>
+            <% if (app.clientId.propriedadeFazenda) { %><br><small class="text-muted"><%= app.clientId.propriedadeFazenda %></small><% } %>
+          </td>
           <td><%= app.culturaTratada %></td>
-          <td><%= app.areaTratada %></td>
+          <td class="text-right"><strong><%= app.areaTratada %></strong></td>
           <td><%= app.marcaComercial %></td>
+          <td>
+            <%
+              const statusApp = app.status || 'concluida';
+              const statusClass = { agendada: 'badge-status-agendada', em_andamento: 'badge-status-em_andamento', concluida: 'badge-status-concluida', cancelada: 'badge-status-cancelada' };
+              const statusLabel = { agendada: 'Agendada', em_andamento: 'Em Andamento', concluida: 'Concluída', cancelada: 'Cancelada' };
+            %>
+            <span class="badge <%= statusClass[statusApp] || 'badge-status-concluida' %>"><%= statusLabel[statusApp] || 'Concluída' %></span>
+          </td>
           <td>
             <div class="table-actions">
               <a href="/applications/<%= app._id %>" class="btn btn-sm btn-outline">Ver</a>
-              <a href="/applications/<%= app._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
               <a href="/reports/application/<%= app._id %>/pdf" class="btn btn-sm btn-accent" target="_blank">PDF</a>
             </div>
           </td>
@@ -71,5 +164,99 @@
   <% } %>
 </div>
 
-<%- include('../partials/footer') %>
+<!-- Ações Rápidas -->
+<div class="quick-actions-grid">
+  <a href="/reports?export=csv" class="quick-action-card">
+    <div class="qa-icon">&#128196;</div>
+    <div class="qa-label">Exportar CSV</div>
+    <div class="qa-sub">Relatório completo</div>
+  </a>
+  <a href="/clients/new" class="quick-action-card">
+    <div class="qa-icon">&#43;</div>
+    <div class="qa-label">Novo Cliente</div>
+    <div class="qa-sub">Cadastrar produtor</div>
+  </a>
+  <a href="/drones/new" class="quick-action-card">
+    <div class="qa-icon">&#128641;</div>
+    <div class="qa-label">Novo Drone</div>
+    <div class="qa-sub">Registrar ARP</div>
+  </a>
+  <a href="/reports" class="quick-action-card">
+    <div class="qa-icon">&#128202;</div>
+    <div class="qa-label">Relatórios</div>
+    <div class="qa-sub">MAPA / Análises</div>
+  </a>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const chartLabels = <%- chartLabels %>;
+  const chartAplicacoes = <%- chartAplicacoes %>;
+  const chartArea = <%- chartArea %>;
+  const tipoLabels = <%- tipoLabels %>;
+  const tipoData = <%- tipoData %>;
+
+  // Gráfico de Área por Mês
+  const ctxArea = document.getElementById('areaChart').getContext('2d');
+  new Chart(ctxArea, {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+      datasets: [
+        {
+          label: 'Área (ha)',
+          data: chartArea,
+          backgroundColor: 'rgba(47, 191, 113, 0.7)',
+          borderColor: '#2FBF71',
+          borderWidth: 2,
+          borderRadius: 6,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Aplicações',
+          data: chartAplicacoes,
+          type: 'line',
+          borderColor: '#1E5EFF',
+          backgroundColor: 'rgba(30, 94, 255, 0.1)',
+          borderWidth: 2,
+          pointRadius: 4,
+          tension: 0.3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: { type: 'linear', position: 'left', title: { display: true, text: 'Hectares (ha)' } },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Nº de Aplicações' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+
+  // Gráfico de Tipo de Atividade
+  const ctxTipo = document.getElementById('tipoChart').getContext('2d');
+  new Chart(ctxTipo, {
+    type: 'doughnut',
+    data: {
+      labels: tipoLabels.length > 0 ? tipoLabels : ['Sem dados'],
+      datasets: [{
+        data: tipoData.length > 0 ? tipoData : [1],
+        backgroundColor: ['#2FBF71','#1E5EFF','#FF8A00','#6f42c1','#17a2b8','#6c757d'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16 } }
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

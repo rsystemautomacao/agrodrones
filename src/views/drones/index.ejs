@@ -1,18 +1,56 @@
 <%- include('../partials/header') %>
 
-<div class="card">
-  <div class="card-header">
-    <h1>Drones</h1>
-    <a href="/drones/new" class="btn btn-primary">Novo Drone</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Drones / Frota</h1>
+    <p class="page-subtitle"><%= drones.filter(d => d.active).length %> ativo(s) · <%= drones.filter(d => !d.active).length %> inativo(s)</p>
   </div>
-  
-  <% if (typeof query !== 'undefined' && query.success) { %>
+  <a href="/drones/new" class="btn btn-primary">+ Novo Drone</a>
+</div>
+
+<% if (typeof query !== 'undefined' && query.success) { %>
 <div class="alert alert-success"><%= query.success %></div>
+<% } %>
+<% if (typeof query !== 'undefined' && query.error) { %>
+<div class="alert alert-error"><%= query.error %></div>
+<% } %>
+
+<!-- Alertas de manutenção -->
+<%
+  const alertas = drones.filter(d => {
+    if (!d.active || !d.manutencao) return false;
+    const horas = d.manutencao.horasVooTotal || 0;
+    const ultimaManut = d.manutencao.horasUltimaManutencao || 0;
+    const intervalo = d.manutencao.intervaloManutencao || 50;
+    const horasDesdeManut = horas - ultimaManut;
+    return horasDesdeManut >= intervalo * 0.85; // alerta a partir de 85% do intervalo
+  });
+%>
+<% if (alertas.length > 0) { %>
+<div class="alert alert-warning-custom">
+  <strong>⚠️ Atenção — Manutenção Próxima ou Vencida</strong>
+  <ul style="margin: 0.5rem 0 0 1.2rem;">
+    <% alertas.forEach(d => {
+      const horas = d.manutencao.horasVooTotal || 0;
+      const ultimaManut = d.manutencao.horasUltimaManutencao || 0;
+      const intervalo = d.manutencao.intervaloManutencao || 50;
+      const horasDesdeManut = horas - ultimaManut;
+      const restante = intervalo - horasDesdeManut;
+    %>
+    <li>
+      <strong><%= d.marcaModelo %></strong> (<%= d.identificacaoRegistro %>) —
+      <%= horasDesdeManut.toFixed(1) %>h desde última manutenção
+      (<%= restante <= 0 ? '<span style="color:#dc3545">VENCIDA</span>' : restante.toFixed(1) + 'h restantes' %>)
+    </li>
+    <% }); %>
+  </ul>
+</div>
 <% } %>
 
 <div class="card">
   <% if (drones.length === 0) { %>
   <div class="empty-state">
+    <div class="empty-state-icon">&#128641;</div>
     <p>Nenhum drone cadastrado ainda.</p>
     <a href="/drones/new" class="btn btn-primary mt-2">Cadastrar Primeiro Drone</a>
   </div>
@@ -22,22 +60,71 @@
       <thead>
         <tr>
           <th>Marca/Modelo</th>
-          <th>Identificação/Registro (ANAC)</th>
-          <th>Capacidade do Tanque (L)</th>
+          <th>Registro ANAC</th>
+          <th>Tanque (L)</th>
+          <th>Horas de Voo</th>
+          <th>Próxima Revisão</th>
+          <th>Aplicações</th>
+          <th>Área Total (ha)</th>
+          <th>Status</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        <% drones.forEach(drone => { %>
+        <% drones.forEach(drone => {
+          const s = statsMap[drone._id.toString()] || {};
+          const horas = drone.manutencao?.horasVooTotal || 0;
+          const ultimaManut = drone.manutencao?.horasUltimaManutencao || 0;
+          const intervalo = drone.manutencao?.intervaloManutencao || 50;
+          const horasDesdeManut = horas - ultimaManut;
+          const pctManut = Math.min((horasDesdeManut / intervalo) * 100, 100);
+          const alertaManut = pctManut >= 85;
+          const venouManut = pctManut >= 100;
+        %>
         <tr>
-          <td><%= drone.marcaModelo %></td>
+          <td><strong><%= drone.marcaModelo %></strong></td>
           <td><%= drone.identificacaoRegistro %></td>
           <td><%= drone.capacidadeTanque || '-' %></td>
+          <td>
+            <div><strong><%= horas.toFixed(1) %>h</strong></div>
+            <div class="manut-bar-wrap" title="<%= horasDesdeManut.toFixed(1) %>h desde última manutenção">
+              <div class="manut-bar <%= venouManut ? 'manut-bar-danger' : alertaManut ? 'manut-bar-warning' : 'manut-bar-ok' %>" style="width: <%= pctManut %>%"></div>
+            </div>
+            <small class="text-muted"><%= horasDesdeManut.toFixed(1) %>h / <%= intervalo %>h</small>
+          </td>
+          <td>
+            <% if (drone.manutencao?.proximaManutencaoData) { %>
+            <% const proxData = new Date(drone.manutencao.proximaManutencaoData); %>
+            <% const diasRestantes = Math.ceil((proxData - new Date()) / (1000 * 60 * 60 * 24)); %>
+            <span class="<%= diasRestantes < 0 ? 'text-danger' : diasRestantes < 7 ? 'text-warning' : '' %>">
+              <%= proxData.toLocaleDateString('pt-BR') %>
+              <% if (diasRestantes < 0) { %><br><small>(vencida)</small>
+              <% } else if (diasRestantes < 7) { %><br><small>(<%= diasRestantes %>d)</small><% } %>
+            </span>
+            <% } else { %>
+            <span class="text-muted">—</span>
+            <% } %>
+          </td>
+          <td><%= s.totalApps || 0 %></td>
+          <td><strong><%= s.totalArea ? s.totalArea.toFixed(1) : '0' %></strong></td>
+          <td>
+            <% if (drone.active) { %>
+            <span class="badge badge-status-concluida">Ativo</span>
+            <% } else { %>
+            <span class="badge badge-status-cancelada">Inativo</span>
+            <% } %>
+          </td>
           <td>
             <div class="table-actions">
               <a href="/drones/<%= drone._id %>/edit" class="btn btn-sm btn-secondary">Editar</a>
               <% if (drone.active) { %>
-              <form method="POST" action="/drones/<%= drone._id %>/delete" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja desativar este drone?');">
+              <!-- Modal de registrar manutenção -->
+              <button type="button" class="btn btn-sm btn-outline"
+                onclick="abrirModalManutencao('<%= drone._id %>', '<%= drone.marcaModelo %>')">
+                Manutenção
+              </button>
+              <form method="POST" action="/drones/<%= drone._id %>/delete" style="display: inline;"
+                onsubmit="return confirm('Desativar este drone?');">
                 <button type="submit" class="btn btn-sm btn-danger">Desativar</button>
               </form>
               <% } %>
@@ -51,5 +138,45 @@
   <% } %>
 </div>
 
-<%- include('../partials/footer') %>
+<!-- Modal de Manutenção -->
+<div id="modalManutencao" class="modal-overlay" style="display: none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalManutTitle">Registrar Manutenção</h3>
+      <button onclick="fecharModal()" class="modal-close">&times;</button>
+    </div>
+    <form id="formManutencao" method="POST">
+      <div class="form-group">
+        <label class="form-label">Descrição do Serviço</label>
+        <textarea name="descricao" class="form-textarea" placeholder="Ex: Troca de hélices, calibração de bicos, revisão geral..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Técnico Responsável</label>
+          <input type="text" name="tecnico" class="form-input" placeholder="Nome do técnico">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Próxima Manutenção Prevista</label>
+          <input type="date" name="proximaManutencaoData" class="form-input">
+        </div>
+      </div>
+      <div class="d-flex gap-2" style="justify-content: flex-end;">
+        <button type="button" onclick="fecharModal()" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
+<script>
+  function abrirModalManutencao(droneId, nome) {
+    document.getElementById('modalManutTitle').textContent = 'Registrar Manutenção — ' + nome;
+    document.getElementById('formManutencao').action = '/drones/' + droneId + '/manutencao';
+    document.getElementById('modalManutencao').style.display = 'flex';
+  }
+  function fecharModal() {
+    document.getElementById('modalManutencao').style.display = 'none';
+  }
+</script>
+
+<%- include('../partials/footer') %>
