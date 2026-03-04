@@ -169,6 +169,16 @@
       margin-bottom: 1.5rem;
       font-weight: 500;
     }
+
+    .alert-success-login {
+      background: #F0FFF4;
+      border: 2px solid #9AE6B4;
+      color: #276749;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -181,6 +191,9 @@
       </div>
       
       <div class="login-form">
+        <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert-success-login"><%= success %></div>
+        <% } %>
         <% if (error) { %>
         <div class="alert-error"><%= error %></div>
         <% } %>
