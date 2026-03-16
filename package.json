@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "seed": "node src/scripts/seed.js",
     "check-cnpj": "node src/scripts/check-cnpj.js",
-    "fix-indexes": "node src/scripts/recreate-indexes.js"
+    "fix-indexes": "node src/scripts/recreate-indexes.js",
+    "test-db": "node src/scripts/test-connection.js"
   },
   "keywords": ["drones", "agriculture", "saas", "multi-tenant"],
   "author": "",
