@@ -55,16 +55,26 @@ router.post('/login', async (req, res) => {
       onboardingCompleted: user.companyId.onboardingCompleted
     };
     
-    if (!user.companyId.onboardingCompleted) {
-      return res.redirect('/onboarding');
-    }
-    
-    res.redirect('/dashboard');
+    req.session.save((err) => {
+      if (err) {
+        console.error('Erro ao salvar sessão:', err);
+        return res.render('auth/login', {
+          title: 'Login',
+          error: 'Erro ao fazer login. Tente novamente.'
+        });
+      }
+
+      if (!user.companyId.onboardingCompleted) {
+        return res.redirect('/onboarding');
+      }
+
+      res.redirect('/dashboard');
+    });
   } catch (error) {
     console.error('Erro no login:', error);
-    res.render('auth/login', { 
-      title: 'Login', 
-      error: 'Erro ao fazer login. Tente novamente.' 
+    res.render('auth/login', {
+      title: 'Login',
+      error: 'Erro ao fazer login. Tente novamente.'
     });
   }
 });
@@ -195,8 +205,17 @@ router.post('/register', async (req, res) => {
       name: company.razaoSocial,
       onboardingCompleted: false
     };
-    
-    res.redirect('/onboarding');
+
+    req.session.save((err) => {
+      if (err) {
+        console.error('Erro ao salvar sessão:', err);
+        return res.render('auth/register', {
+          title: 'Registrar',
+          error: 'Erro ao registrar. Tente novamente.'
+        });
+      }
+      res.redirect('/onboarding');
+    });
   } catch (error) {
     console.error('Erro no registro:', error);
     console.error('Detalhes do erro:', {
