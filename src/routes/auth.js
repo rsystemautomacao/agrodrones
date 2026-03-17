@@ -33,14 +33,22 @@ router.post('/login', async (req, res) => {
     }
     
     const isMatch = await user.comparePassword(password);
-    
+
     if (!isMatch) {
-      return res.render('auth/login', { 
-        title: 'Login', 
-        error: 'Credenciais inválidas.' 
+      return res.render('auth/login', {
+        title: 'Login',
+        error: 'Credenciais inválidas.'
       });
     }
-    
+
+    if (!user.companyId) {
+      console.error('Empresa não encontrada para o usuário:', user.email);
+      return res.render('auth/login', {
+        title: 'Login',
+        error: 'Empresa associada não encontrada. Contate o suporte.'
+      });
+    }
+
     req.session.user = {
       id: user._id.toString(),
       name: user.name,
@@ -71,10 +79,10 @@ router.post('/login', async (req, res) => {
       res.redirect('/dashboard');
     });
   } catch (error) {
-    console.error('Erro no login:', error);
+    console.error('Erro no login:', error.message, error.stack);
     res.render('auth/login', {
       title: 'Login',
-      error: 'Erro ao fazer login. Tente novamente.'
+      error: 'Erro ao fazer login. Tente novamente. (' + error.message + ')'
     });
   }
 });
