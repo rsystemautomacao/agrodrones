@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Eye, Pencil, FileText, Copy, Plane } from "lucide-react";
+import { Plus, Plane } from "lucide-react";
 
 export default function Applications() {
   const [applications] = useState<never[]>([]);
