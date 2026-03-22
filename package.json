@@ -18,8 +18,5 @@
     "multi-tenant"
   ],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
+  "license": "ISC"
 }
