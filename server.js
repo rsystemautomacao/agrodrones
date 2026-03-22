@@ -7,6 +7,9 @@ const path = require('path');
 
 const app = express();
 
+// Necessário para cookies secure funcionarem atrás de proxy (Vercel, Nginx, etc.)
+app.set('trust proxy', 1);
+
 // Configuração do MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/agrodroneops', {
   useNewUrlParser: true,
