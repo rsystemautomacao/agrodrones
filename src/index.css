@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* AgroDrones brand colors in HSL */
+    --agro-blue: 224 100% 56%;
+    --agro-green: 148 61% 47%;
+    --agro-orange: 32 100% 50%;
+    --agro-dark: 216 16% 12%;
+
+    --background: 210 20% 98%;
+    --foreground: 216 16% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 216 16% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 16% 12%;
+    --primary: 224 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 148 61% 47%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 32 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 224 100% 56%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 216 16% 8%;
+    --foreground: 210 20% 98%;
+    --card: 216 16% 12%;
+    --card-foreground: 210 20% 98%;
+    --popover: 216 16% 12%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 224 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 148 61% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 216 16% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 32 100% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 16% 20%;
+    --input: 216 16% 20%;
+    --ring: 224 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
