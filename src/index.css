@@ -1,57 +1,37 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    /* AgroDrones brand colors in HSL */
-    --agro-blue: 224 100% 56%;
-    --agro-green: 148 61% 47%;
-    --agro-orange: 32 100% 50%;
-    --agro-dark: 216 16% 12%;
+@theme inline {
+  --color-border: hsl(214 32% 91%);
+  --color-input: hsl(214 32% 91%);
+  --color-ring: hsl(224 100% 56%);
+  --color-background: hsl(210 20% 98%);
+  --color-foreground: hsl(216 16% 12%);
+  --color-primary: hsl(224 100% 56%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(148 61% 47%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  --color-destructive: hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-muted: hsl(210 20% 96%);
+  --color-muted-foreground: hsl(215 16% 47%);
+  --color-accent: hsl(32 100% 50%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(216 16% 12%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(216 16% 12%);
+  --color-agro-blue: hsl(224 100% 56%);
+  --color-agro-green: hsl(148 61% 47%);
+  --color-agro-orange: hsl(32 100% 50%);
+  --color-agro-dark: hsl(216 16% 12%);
+  --radius: 0.5rem;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --animate-float: float 3s ease-in-out infinite;
 
-    --background: 210 20% 98%;
-    --foreground: 216 16% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 216 16% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 216 16% 12%;
-    --primary: 224 100% 56%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 148 61% 47%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 32 100% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 224 100% 56%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 216 16% 8%;
-    --foreground: 210 20% 98%;
-    --card: 216 16% 12%;
-    --card-foreground: 210 20% 98%;
-    --popover: 216 16% 12%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 224 100% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 148 61% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 216 16% 18%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 32 100% 55%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 216 16% 20%;
-    --input: 216 16% 20%;
-    --ring: 224 100% 60%;
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
 }
 
